@@ -39,7 +39,7 @@ class MuonNavigationSchool : public NavigationSchool {
 
   public:
     ///Constructor
-    MuonNavigationSchool(const MuonDetLayerGeometry *, bool enableCSC = true, bool enableRPC = true, bool enableGEM = false);
+    MuonNavigationSchool(const MuonDetLayerGeometry *, bool enableRPC = true, bool enableCSC = true, bool enableGEM = true);
     /// Destructor
     ~MuonNavigationSchool();
     /// return navigable layers, from base class
