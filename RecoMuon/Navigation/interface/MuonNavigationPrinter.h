@@ -30,7 +30,7 @@ class GeometricSearchTracker;
 
 class MuonNavigationPrinter {
   public:
-    MuonNavigationPrinter(const MuonDetLayerGeometry *, bool enableCSC = true, bool enableRPC = true, bool enableGEM = true );
+    MuonNavigationPrinter(const MuonDetLayerGeometry *, bool enableRPC = true, bool enableCSC = true, bool enableGEM = true );
     MuonNavigationPrinter(const MuonDetLayerGeometry *,const GeometricSearchTracker *);
 
   private:
