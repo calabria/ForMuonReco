@@ -10,7 +10,14 @@
  */
 
 // Base Class Headers
+#include "FWCore/Framework/interface/Frameworkfwd.h"
 #include "FWCore/Framework/interface/EDAnalyzer.h"
+#include <FWCore/Framework/interface/EventSetup.h>
+#include <FWCore/Framework/interface/ESHandle.h>
+#include "FWCore/Framework/interface/Event.h"
+#include "FWCore/Framework/interface/MakerMacros.h"
+
+#include "FWCore/ParameterSet/interface/ParameterSet.h"
 
 namespace edm {
   class ParameterSet;
@@ -42,7 +49,7 @@ private:
   std::string theRootFileName;
   TFile* theFile;
 
-  std::string theSTAMuonLabel;
+  edm::InputTag staTrackLabel_;
   std::string theSeedCollectionLabel;
 
   // Histograms
