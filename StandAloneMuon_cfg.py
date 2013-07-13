@@ -16,6 +16,31 @@ process.load('Configuration.StandardSequences.FrontierConditions_GlobalTag_cff')
 from Configuration.AlCa.GlobalTag import GlobalTag
 process.GlobalTag = GlobalTag(process.GlobalTag, 'auto:upgrade2019', '')
 
+#--------------------------------------------------------------------------------
+
+from FWCore.ParameterSet.VarParsing import VarParsing
+options = VarParsing ('python')
+options.register ('includeGEMs',
+                  True,
+                  VarParsing.multiplicity.singleton,
+                  VarParsing.varType.bool,
+                  "Sample Type: True or False")
+
+import sys
+print sys.argv
+
+if len(sys.argv) > 0:
+    last = sys.argv.pop()
+    sys.argv.extend(last.split(","))
+    print sys.argv
+
+if hasattr(sys, "argv") == True:
+	options.parseArguments()
+includeGEMs = options.includeGEMs
+print 'Using includeGEMs: %s' % includeGEMs
+
+#--------------------------------------------------------------------------------
+
 process.maxEvents = cms.untracked.PSet(
     input = cms.untracked.int32(-1)
 )
@@ -41,38 +66,60 @@ process.out = cms.OutputModule("PoolOutputModule",
     fileName = cms.untracked.string('RecoSTAMuons.root')
 )
 
-#process.dtlocalreco = cms.Sequence(process.dt1DRecHits*process.dt4DSegments)
+if includeGEMs:
+	process.standAloneMuons.STATrajBuilderParameters.FilterParameters.EnableGEMMeasurement = cms.bool(True)
+	process.standAloneMuons.STATrajBuilderParameters.BWFilterParameters.EnableGEMMeasurement = cms.bool(True)
+else:
+	process.standAloneMuons.STATrajBuilderParameters.FilterParameters.EnableGEMMeasurement = cms.bool(False)
+	process.standAloneMuons.STATrajBuilderParameters.BWFilterParameters.EnableGEMMeasurement = cms.bool(False)
 
 ## Analyzer to produce pT and 1/pT resolution plots
 process.STAMuonAnalyzer = cms.EDAnalyzer("STAMuonAnalyzer",
-                                         DataType = cms.untracked.string('SimData'),
-                                         StandAloneTrackCollectionLabel = cms.untracked.string('standAloneMuons'),
-                                         MuonSeedCollectionLabel = cms.untracked.string('standAloneMuonSeeds'),
-                                         rootFileName = cms.untracked.string('STAMuonAnalyzer.root')
-                                         )
+	DataType = cms.untracked.string('SimData'),
+	StandAloneTrackCollectionLabel = cms.untracked.InputTag('standAloneMuons'),
+	MuonSeedCollectionLabel = cms.untracked.string('standAloneMuonSeeds'),
+	rootFileName = cms.untracked.string('STAMuonAnalyzer.root')
+ 	)
 
+process.STAMuonAnalyzerWithGEMs = cms.EDAnalyzer("STAMuonAnalyzer",
+	DataType = cms.untracked.string('SimData'),
+	StandAloneTrackCollectionLabel = cms.untracked.InputTag('standAloneMuons','','RecoSTAMuon'),
+	MuonSeedCollectionLabel = cms.untracked.string('standAloneMuonSeeds'),
+	rootFileName = cms.untracked.string('STAMuonAnalyzerWithGEMs.root')
+	)
 
 process.demo = cms.EDAnalyzer('GEMRecHitsReader',
-    simHit = cms.untracked.InputTag("g4SimHits", "MuonGEMHits"),
-    recHit = cms.untracked.InputTag("gemRecHits"),
-    simTrack = cms.untracked.InputTag("mix", "MergedTrackTruth"),
-    staTrack = cms.untracked.InputTag("standAloneMuons","","RecoSTAMuon"),
+	simHit = cms.untracked.InputTag("g4SimHits", "MuonGEMHits"),
+	recHit = cms.untracked.InputTag("gemRecHits"),
+	simTrack = cms.untracked.InputTag("mix", "MergedTrackTruth"),
+	staTrack = cms.untracked.InputTag("standAloneMuons"),
 )
 
-process.MessageLogger = cms.Service("MessageLogger",
-       destinations = cms.untracked.vstring(                          #1
-                                             'myDebugOutputFile'        #2
-       ),
-       myDebugOutputFile = cms.untracked.PSet(                   #3
-                       threshold = cms.untracked.string('DEBUG'),      #4
-                       default = cms.untracked.PSet(                   
-                       		limit = cms.untracked.int32(-1)                 #5
-        	       ),
-       debugModules = cms.untracked.vstring(                            #6
-                      'standAloneMuons'
-	)                               #7
-       )                                                                       #8
+process.demoWithGEMs = cms.EDAnalyzer('GEMRecHitsReader',
+	simHit = cms.untracked.InputTag("g4SimHits", "MuonGEMHits"),
+	recHit = cms.untracked.InputTag("gemRecHits"),
+	simTrack = cms.untracked.InputTag("mix", "MergedTrackTruth"),
+	staTrack = cms.untracked.InputTag("standAloneMuons","","RecoSTAMuon"),
 )
-process.p = cms.Path(process.standAloneMuons * process.STAMuonAnalyzer * process.demo)                 ## default path (no analyzer)
-#process.p = cms.Path(process.standAloneMuonSeeds * process.standAloneMuons * process.STAMuonAnalyzer)  ## path with analyzer
+
+#process.MessageLogger = cms.Service("MessageLogger",
+#       destinations = cms.untracked.vstring(                            #1
+#                                             'myDebugOutputFile'        #2
+#       ),
+#       myDebugOutputFile = cms.untracked.PSet(                          #3
+#                       threshold = cms.untracked.string('DEBUG'),       #4
+#                       default = cms.untracked.PSet(                   
+#                       		limit = cms.untracked.int32(-1)  #5
+#        	       ),
+#       debugModules = cms.untracked.vstring(                            #6
+#                      'standAloneMuons'
+#	)                                                                #7
+#       )                                                                #8
+#)
+
+if includeGEMs:
+	process.p = cms.Path(process.standAloneMuons * process.STAMuonAnalyzerWithGEMs * process.demoWithGEMs)
+else:
+	process.p = cms.Path(process.standAloneMuons * process.STAMuonAnalyzer * process.demo)
+
 process.this_is_the_end = cms.EndPath(process.out)
