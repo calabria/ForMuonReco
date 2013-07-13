@@ -97,7 +97,7 @@ StandAloneMuonFilter::StandAloneMuonFilter(const ParameterSet& par,
 							 enableDTMeasurement,
 							 enableCSCMeasurement,
 							 enableRPCMeasurement,
-							 enableRPCMeasurement);
+							 enableGEMMeasurement);
   
   theRPCLoneliness = (!(enableDTMeasurement && enableCSCMeasurement)) ? enableRPCMeasurement : false;
 }
