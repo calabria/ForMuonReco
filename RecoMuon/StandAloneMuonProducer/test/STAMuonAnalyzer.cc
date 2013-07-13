@@ -36,7 +36,7 @@ using namespace edm;
 
 /// Constructor
 STAMuonAnalyzer::STAMuonAnalyzer(const ParameterSet& pset){
-  theSTAMuonLabel = pset.getUntrackedParameter<string>("StandAloneTrackCollectionLabel");
+  staTrackLabel_ = pset.getUntrackedParameter<edm::InputTag>("StandAloneTrackCollectionLabel");
   theSeedCollectionLabel = pset.getUntrackedParameter<string>("MuonSeedCollectionLabel");
 
   theRootFileName = pset.getUntrackedParameter<string>("rootFileName");
@@ -100,7 +100,7 @@ void STAMuonAnalyzer::analyze(const Event & event, const EventSetup& eventSetup)
   
   // Get the RecTrack collection from the event
   Handle<reco::TrackCollection> staTracks;
-  event.getByLabel(theSTAMuonLabel, staTracks);
+  event.getByLabel(staTrackLabel_, staTracks);
 
   ESHandle<MagneticField> theMGField;
   eventSetup.get<IdealMagneticFieldRecord>().get(theMGField);
@@ -158,6 +158,7 @@ void STAMuonAnalyzer::analyze(const Event & event, const EventSetup& eventSetup)
     cout<<"RecHits:"<<endl;
     for(trackingRecHit_iterator recHit = rhbegin; recHit != rhend; ++recHit){
       const GeomDet* geomDet = theTrackingGeometry->idToDet((*recHit)->geographicalId());
+      std::cout<<"detID "<<(*recHit)->geographicalId()<<" "<<geomDet<<std::endl;
       double r = geomDet->surface().position().perp();
       double z = geomDet->toGlobal((*recHit)->localPosition()).z();
       cout<<"r: "<< r <<" z: "<<z <<endl;
