@@ -41,6 +41,8 @@ void MuonDetLayerGeometry::addCSCLayers(pair<vector<DetLayer*>, vector<DetLayer*
     allForward.push_back(*it);
     //    allEndcap.push_back(*it);
     //    allDetLayers.push_back(*it);
+    allEndcapCscGem.push_back(*it);
+    allCscGemForward.push_back(*it);
     
     detLayersMap[ makeDetLayerId(*it) ] = *it;
   }
@@ -51,6 +53,8 @@ void MuonDetLayerGeometry::addCSCLayers(pair<vector<DetLayer*>, vector<DetLayer*
     allBackward.push_back(*it);
     //    allEndcap.push_back(*it);
     //    allDetLayers.push_back(*it);
+    allEndcapCscGem.push_back(*it);
+    allCscGemBackward.push_back(*it);
     
     detLayersMap[ makeDetLayerId(*it) ] = *it;
   }    
@@ -65,6 +69,9 @@ void MuonDetLayerGeometry::addGEMLayers(pair<vector<DetLayer*>, vector<DetLayer*
     allForward.push_back(*it);
     //    allEndcap.push_back(*it);
     //    allDetLayers.push_back(*it);
+    allEndcapCscGem.push_back(*it);
+    allCscGemForward.push_back(*it);
+
     detLayersMap[ makeDetLayerId(*it) ] = *it;
   }
   for(it=gemlayers.second.begin(); it!=gemlayers.second.end(); it++) {
@@ -73,6 +80,9 @@ void MuonDetLayerGeometry::addGEMLayers(pair<vector<DetLayer*>, vector<DetLayer*
     allBackward.push_back(*it);
     //    allEndcap.push_back(*it);
     //    allDetLayers.push_back(*it);
+    allEndcapCscGem.push_back(*it);
+    allCscGemBackward.push_back(*it);
+
     detLayersMap[ makeDetLayerId(*it) ] = *it;
   }
 }
