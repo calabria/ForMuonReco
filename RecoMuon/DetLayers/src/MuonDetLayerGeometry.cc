@@ -41,8 +41,6 @@ void MuonDetLayerGeometry::addCSCLayers(pair<vector<DetLayer*>, vector<DetLayer*
     allForward.push_back(*it);
     //    allEndcap.push_back(*it);
     //    allDetLayers.push_back(*it);
-    allEndcapCscGem.push_back(*it);
-    allCscGemForward.push_back(*it);
     
     detLayersMap[ makeDetLayerId(*it) ] = *it;
   }
@@ -53,8 +51,6 @@ void MuonDetLayerGeometry::addCSCLayers(pair<vector<DetLayer*>, vector<DetLayer*
     allBackward.push_back(*it);
     //    allEndcap.push_back(*it);
     //    allDetLayers.push_back(*it);
-    allEndcapCscGem.push_back(*it);
-    allCscGemBackward.push_back(*it);
     
     detLayersMap[ makeDetLayerId(*it) ] = *it;
   }    
@@ -69,8 +65,6 @@ void MuonDetLayerGeometry::addGEMLayers(pair<vector<DetLayer*>, vector<DetLayer*
     allForward.push_back(*it);
     //    allEndcap.push_back(*it);
     //    allDetLayers.push_back(*it);
-    allEndcapCscGem.push_back(*it);
-    allCscGemForward.push_back(*it);
 
     detLayersMap[ makeDetLayerId(*it) ] = *it;
   }
@@ -80,8 +74,6 @@ void MuonDetLayerGeometry::addGEMLayers(pair<vector<DetLayer*>, vector<DetLayer*
     allBackward.push_back(*it);
     //    allEndcap.push_back(*it);
     //    allDetLayers.push_back(*it);
-    allEndcapCscGem.push_back(*it);
-    allCscGemBackward.push_back(*it);
 
     detLayersMap[ makeDetLayerId(*it) ] = *it;
   }
@@ -389,21 +381,21 @@ void MuonDetLayerGeometry::sortLayers() {
 
   // allEndcapCSCGEM: order is  all bw, all fw
   allEndcapCscGem.reserve(cscLayers_bk.size()+cscLayers_fw.size()+gemLayers_bk.size()+gemLayers_fw.size());
-  std::copy(cscLayers_bk.begin(),cscLayers_bk.end(),back_inserter(cscLayers_all));
-  std::copy(gemLayers_bk.begin(),gemLayers_bk.end(),back_inserter(gemLayers_all));
+  std::copy(cscLayers_bk.begin(),cscLayers_bk.end(),back_inserter(allEndcapCscGem));
+  std::copy(gemLayers_bk.begin(),gemLayers_bk.end(),back_inserter(allEndcapCscGem));
   std::reverse(allEndcapCscGem.begin(),allEndcapCscGem.end());
-  std::copy(cscLayers_fw.begin(),cscLayers_fw.end(),back_inserter(cscLayers_all));
-  std::copy(gemLayers_fw.begin(),gemLayers_fw.end(),back_inserter(gemLayers_all));
+  std::copy(cscLayers_fw.begin(),cscLayers_fw.end(),back_inserter(allEndcapCscGem));
+  std::copy(gemLayers_fw.begin(),gemLayers_fw.end(),back_inserter(allEndcapCscGem));
 
   // allCscGemForward
   allCscGemForward.reserve(cscLayers_fw.size()+gemLayers_fw.size());
-  std::copy(cscLayers_fw.begin(),cscLayers_fw.end(),back_inserter(cscLayers_all));
-  std::copy(gemLayers_fw.begin(),gemLayers_fw.end(),back_inserter(gemLayers_all));
+  std::copy(cscLayers_fw.begin(),cscLayers_fw.end(),back_inserter(allCscGemForward));
+  std::copy(gemLayers_fw.begin(),gemLayers_fw.end(),back_inserter(allCscGemForward));
 
   // allCscGemBackward
   allCscGemBackward.reserve(cscLayers_bk.size()+gemLayers_bk.size());
-  std::copy(cscLayers_bk.begin(),cscLayers_bk.end(),back_inserter(cscLayers_all));
-  std::copy(gemLayers_bk.begin(),gemLayers_bk.end(),back_inserter(gemLayers_all));
+  std::copy(cscLayers_bk.begin(),cscLayers_bk.end(),back_inserter(allCscGemBackward));
+  std::copy(gemLayers_bk.begin(),gemLayers_bk.end(),back_inserter(allCscGemBackward));
 
   // allDetLayers: order is  all bw, all barrel, all fw
   allDetLayers.reserve(allBackward.size()+allBarrel.size()+allForward.size());
