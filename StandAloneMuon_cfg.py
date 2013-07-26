@@ -49,7 +49,17 @@ process.source = cms.Source("PoolSource",
 
 	#'file:/lustre/cms/store/relval/CMSSW_6_0_1_PostLS1v2_patch3-POSTLS161_V12/RelValZMM/GEN-SIM-RECO/v1/00000/4CC120BE-B03D-E211-8610-001A92810AA6.root'
 	#'file:out_sim_digi.root'
-	'file:./FileMarcello/step_GEM_LocalReco.root'
+	#'file:./FileMarcello/step_GEM_LocalReco.root'
+	'file:/lustre/cms/store/user/calabria/calabria_SingleMuPt40_GEN-SIM_CMSSW_6_1_2_SLHC6_patch1/calabria_SingleMuPt40_RECO-GEM_RecHits_CMSSW_6_1_2_SLHC6_patch1/f9ffd942f8d6dde7cd9f538152015b90/step_GEM_LocalReco_10_1_7ZM.root',
+	'file:/lustre/cms/store/user/calabria/calabria_SingleMuPt40_GEN-SIM_CMSSW_6_1_2_SLHC6_patch1/calabria_SingleMuPt40_RECO-GEM_RecHits_CMSSW_6_1_2_SLHC6_patch1/f9ffd942f8d6dde7cd9f538152015b90/step_GEM_LocalReco_1_1_0K8.root',
+	'file:/lustre/cms/store/user/calabria/calabria_SingleMuPt40_GEN-SIM_CMSSW_6_1_2_SLHC6_patch1/calabria_SingleMuPt40_RECO-GEM_RecHits_CMSSW_6_1_2_SLHC6_patch1/f9ffd942f8d6dde7cd9f538152015b90/step_GEM_LocalReco_2_1_x7O.root',
+	'file:/lustre/cms/store/user/calabria/calabria_SingleMuPt40_GEN-SIM_CMSSW_6_1_2_SLHC6_patch1/calabria_SingleMuPt40_RECO-GEM_RecHits_CMSSW_6_1_2_SLHC6_patch1/f9ffd942f8d6dde7cd9f538152015b90/step_GEM_LocalReco_3_1_TNK.root',
+	'file:/lustre/cms/store/user/calabria/calabria_SingleMuPt40_GEN-SIM_CMSSW_6_1_2_SLHC6_patch1/calabria_SingleMuPt40_RECO-GEM_RecHits_CMSSW_6_1_2_SLHC6_patch1/f9ffd942f8d6dde7cd9f538152015b90/step_GEM_LocalReco_4_1_sn4.root',
+	'file:/lustre/cms/store/user/calabria/calabria_SingleMuPt40_GEN-SIM_CMSSW_6_1_2_SLHC6_patch1/calabria_SingleMuPt40_RECO-GEM_RecHits_CMSSW_6_1_2_SLHC6_patch1/f9ffd942f8d6dde7cd9f538152015b90/step_GEM_LocalReco_5_1_bKg.root',
+	'file:/lustre/cms/store/user/calabria/calabria_SingleMuPt40_GEN-SIM_CMSSW_6_1_2_SLHC6_patch1/calabria_SingleMuPt40_RECO-GEM_RecHits_CMSSW_6_1_2_SLHC6_patch1/f9ffd942f8d6dde7cd9f538152015b90/step_GEM_LocalReco_6_1_C1B.root',
+	'file:/lustre/cms/store/user/calabria/calabria_SingleMuPt40_GEN-SIM_CMSSW_6_1_2_SLHC6_patch1/calabria_SingleMuPt40_RECO-GEM_RecHits_CMSSW_6_1_2_SLHC6_patch1/f9ffd942f8d6dde7cd9f538152015b90/step_GEM_LocalReco_7_1_JGi.root',
+	'file:/lustre/cms/store/user/calabria/calabria_SingleMuPt40_GEN-SIM_CMSSW_6_1_2_SLHC6_patch1/calabria_SingleMuPt40_RECO-GEM_RecHits_CMSSW_6_1_2_SLHC6_patch1/f9ffd942f8d6dde7cd9f538152015b90/step_GEM_LocalReco_8_1_Fej.root',
+	'file:/lustre/cms/store/user/calabria/calabria_SingleMuPt40_GEN-SIM_CMSSW_6_1_2_SLHC6_patch1/calabria_SingleMuPt40_RECO-GEM_RecHits_CMSSW_6_1_2_SLHC6_patch1/f9ffd942f8d6dde7cd9f538152015b90/step_GEM_LocalReco_9_1_Ctf.root',
 
     )
 )
@@ -73,6 +83,8 @@ else:
 	process.standAloneMuons.STATrajBuilderParameters.FilterParameters.EnableGEMMeasurement = cms.bool(False)
 	process.standAloneMuons.STATrajBuilderParameters.BWFilterParameters.EnableGEMMeasurement = cms.bool(False)
 
+#process.globalMuons.MuonCollectionLabel = cms.InputTag("standAloneMuons","UpdatedAtVtx","RecoSTAMuon")
+
 ## Analyzer to produce pT and 1/pT resolution plots
 process.STAMuonAnalyzer = cms.EDAnalyzer("STAMuonAnalyzer",
 	DataType = cms.untracked.string('SimData'),
@@ -92,7 +104,7 @@ process.demo = cms.EDAnalyzer('GEMRecHitsReader',
 	simHit = cms.untracked.InputTag("g4SimHits", "MuonGEMHits"),
 	recHit = cms.untracked.InputTag("gemRecHits"),
 	simTrack = cms.untracked.InputTag("mix", "MergedTrackTruth"),
-	staTrack = cms.untracked.InputTag("standAloneMuons"),
+	staTrack = cms.untracked.InputTag("standAloneMuons","","RecoSTAMuon"),
 )
 
 process.demoWithGEMs = cms.EDAnalyzer('GEMRecHitsReader',
@@ -117,8 +129,16 @@ process.demoWithGEMs = cms.EDAnalyzer('GEMRecHitsReader',
 #       )                                                                #8
 #)
 
+#Automatic addition of the customisation function from SLHCUpgradeSimulations.Configuration.combinedCustoms
+#from SLHCUpgradeSimulations.Configuration.combinedCustoms import cust_2019
+
+#call to customisation function cust_2019 imported from SLHCUpgradeSimulations.Configuration.combinedCustoms
+#process = cust_2019(process)
+
+# End of customisation functions 
+
 if includeGEMs:
-	process.p = cms.Path(process.standAloneMuons * process.STAMuonAnalyzerWithGEMs * process.demoWithGEMs)
+	process.p = cms.Path(process.standAloneMuons * process.STAMuonAnalyzerWithGEMs * process.STAMuonAnalyzer * process.demoWithGEMs)
 else:
 	process.p = cms.Path(process.standAloneMuons * process.STAMuonAnalyzer * process.demo)
 
