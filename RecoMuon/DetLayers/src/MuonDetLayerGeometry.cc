@@ -307,7 +307,7 @@ const DetLayer* MuonDetLayerGeometry::idToLayer(const DetId &detId) const{
   }
   else if (detId.subdetId() == MuonSubdetId::GEM){
     GEMDetId gemId(detId.rawId() );
-    id = GEMDetId(gemId.region(),0,gemId.station(),gemId.layer(),0,0);
+    id = GEMDetId(gemId.region(),1,gemId.station(),gemId.layer(),0,0);
   }
   else throw cms::Exception("InvalidSubdetId")<< detId.subdetId();
 
