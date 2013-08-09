@@ -74,7 +74,10 @@ using namespace std;
 using namespace edm;
 
 /// Constructor
-STAMuonAnalyzer::STAMuonAnalyzer(const ParameterSet& pset){
+STAMuonAnalyzer::STAMuonAnalyzer(const ParameterSet& pset):
+  histContainer_(),
+  histContainer2D_()
+{
   staTrackLabel_ = pset.getUntrackedParameter<edm::InputTag>("StandAloneTrackCollectionLabel");
   theSeedCollectionLabel = pset.getUntrackedParameter<string>("MuonSeedCollectionLabel");
 
@@ -86,6 +89,7 @@ STAMuonAnalyzer::STAMuonAnalyzer(const ParameterSet& pset){
     cout<<"Error in Data Type!!"<<endl;
 
   noGEMCase_ = pset.getUntrackedParameter<bool>("NoGEMCase");
+  isGlobalMuon_ = pset.getUntrackedParameter<bool>("isGlobalMuon",false);
 
   numberOfSimTracks=0;
   numberOfRecTracks=0;
@@ -101,6 +105,7 @@ void STAMuonAnalyzer::beginJob(){
   theFile->cd();
 
   hPtRec = new TH1F("pTRec","p_{T}^{rec}",200,0,1000);
+  hDeltaPtRec = new TH1F("DeltapTRec","#Delta p_{T}^{rec}",200,-1,1);
   hPtSim = new TH1F("pTSim","p_{T}^{gen} ",200,0,1000);
 
   hPTDiff = new TH1F("pTDiff","p_{T}^{rec} - p_{T}^{gen} ",400,-1000,1000);
@@ -114,33 +119,57 @@ void STAMuonAnalyzer::beginJob(){
 
   hSimEta = new TH1F("PSimEta","SimTrack #eta",100,-2.5,2.5);
   hRecEta = new TH1F("PRecEta","RecTrack #eta",100,-2.5,2.5);
-  hDeltaEta = new TH1F("PDeltaEta","#Delta#eta",100,-2.5,2.5);
-  hDeltaPhi = new TH1F("PDeltaPhi","#Delta#phi",100,-6,6);
+  hDeltaEta = new TH1F("PDeltaEta","#Delta#eta",100,-1,1);
+  hDeltaPhi = new TH1F("PDeltaPhi","#Delta#phi",100,-1,1);
+  hDeltaPhiPlus = new TH1F("PDeltaPhiPlus","#Delta#phi q>0",100,-1,1);
+  hDeltaPhiMinus = new TH1F("PDeltaPhiMinus","#Delta#phi q<0",100,-1,1);
 
   hSimPhi = new TH1F("PSimPhi","SimTrack #phi",100,-6,6);
   hRecPhi = new TH1F("PRecPhi","RecTrack #phi",100,-6,6);
+  hRecPhi2DPlusLayer1 = new TH2F("RecHitPhi2DPlusLayer1","RecHit #phi GE+1 vs. Sector, Layer 1",36,-TMath::Pi(),TMath::Pi(),36,0,36);
+  hRecPhi2DMinusLayer1 = new TH2F("RecHitPhi2DMinusLayer1","RecHit #phi GE-1 vs. Sector, Layer 1",36,-TMath::Pi(),TMath::Pi(),36,0,36);
+  hRecPhi2DPlusLayer2 = new TH2F("RecHitPhi2DPlusLayer2","RecHit #phi GE+1 vs. Sector, Layer 2",36,-TMath::Pi(),TMath::Pi(),36,0,36);
+  hRecPhi2DMinusLayer2 = new TH2F("RecHitPhi2DMinusLayer2","RecHit #phi GE-1 vs. Sector, Layer 2",36,-TMath::Pi(),TMath::Pi(),36,0,36);
 
   hNumSimTracks = new TH1F("NumSimTracks","NumSimTracks",100,0,100);
   hNumMuonSimTracks = new TH1F("NumMuonSimTracks","NumMuonSimTracks",10,0,10);
   hNumRecTracks = new TH1F("NumRecTracks","NumRecTracks",10,0,10);
+  hNumGEMSimHits = new TH1F("NumGEMSimHits","NumGEMSimHits",10,0,10);
+  hNumCSCSimHits = new TH1F("NumCSCSimHits","NumCSCSimHits",10,0,10);
+  hNumGEMRecHits = new TH1F("NumGEMRecHits","NumGEMRecHits",10,0,10);
+  hNumCSCRecHits = new TH1F("NumCSCRecHits","NumCSCRecHits",10,0,10);
 
   //Double_t nbins[] = {0,10,30,50,100,150,200,300,500,750,1000};
 
-  hPtResVsPt = new TH2F("PtResVsPt","p_{T} Resolution vs. p_{T}",10,0,1000,50,0,2);
-  hInvPtResVsPt = new TH2F("InvPtResVsPt","1/p_{T} Resolution vs. p_{T}",10,0,1000,50,0,2);
+  hPtResVsPt = new TH2F("PtResVsPt","p_{T} Resolution vs. p_{T}",10,0,1000,100,-2,2);
+  hInvPtResVsPt = new TH2F("InvPtResVsPt","1/p_{T} Resolution vs. p_{T}",10,0,1000,100,-2,2);
   hDPhiVsPt = new TH2F("DPhiVsPt","#Delta#phi vs. p_{T}",10,0,1000,100,-6,6);
 
   hDenPt = new TH1F("DenPt","DenPt",10,0,1000);
   hDenEta = new TH1F("DenEta","DenEta",100,-2.5,2.5);
+  hDenPhi = new TH1F("DenPhi","DenPhi",36,-TMath::Pi(),TMath::Pi());
+  hDenPhiPlus = new TH1F("DenPhiPlus","DenPhiMinus",180,0,180);
+  hDenPhiMinus = new TH1F("DenPhiMinus","DenPhiMinus",180,0,180);
   hNumPt = new TH1F("NumPt","NumPt",10,0,1000);
   hNumEta = new TH1F("NumEta","NumEta",100,-2.5,2.5);
+  hNumPhi = new TH1F("NumPhi","NumPhi",36,-TMath::Pi(),TMath::Pi());
+  hNumPhiPlus = new TH1F("NumPhiPlus","NumPhiMinus",180,0,180);
+  hNumPhiMinus = new TH1F("NumPhiMinus","NumPhiMinus",180,0,180);
 
-  hPullGEM = new TH1F("PullGEM", "(x_{mc} - x_{rec}) / #sigma",500,-15.,15.);
+  hPullGEMx = new TH1F("PullGEMx", "(x_{mc} - x_{rec}) / #sigma",200,-1.,1.);
+  hPullGEMy = new TH1F("PullGEMy", "(y_{mc} - y_{rec}) / #sigma",200,-1.,1.);
+  hPullGEMz = new TH1F("PullGEMz", "(z_{mc} - z_{rec}) / #sigma",200,-1.,1.);
   hPullCSC = new TH1F("PullCSC", "(x_{mc} - x_{rec}) / #sigma",500,-15.,15.);
 
   hGEMRecHitEta = new TH1F("GEMRecHitEta","GEM RecHits #eta",100,-2.5,2.5);
+  hGEMRecHitPhi = new TH1F("GEMRecHitPhi","GEM RecHits #phi",600,-6,6);
 
-  hDR = new TH1F("DR","#Delta R (SIM-RECO)",124,-0.1,6.1);
+  hDR = new TH1F("DR","#Delta R (SIM-RECO)",300,0,1);
+  hDR2 = new TH1F("DRGEM","#Delta R (SIM-RECO)",500,0,0.5);
+  hDR3 = new TH1F("DRCSC","#Delta R (SIM-RECO)",500,0,0.5);
+
+  hCharge = new TH2F("Charge","q (SIM-RECO)",6,-3,3,6,-3,3);
+  hDeltaCharge = new TH2F("DeltaCharge","#Delta q (SIM-RECO)",10,0,1000,6,-3,3);
 
   //hPTDiffvsEta = new TH2F("PTDiffvsEta","p_{T}^{rec} - p_{T}^{gen} VS #eta",100,-2.5,2.5,200,-1000,1000);
 
@@ -156,6 +185,7 @@ void STAMuonAnalyzer::endJob(){
   // Write the histos to file
   theFile->cd();
   hPtRec->Write();
+  hDeltaPtRec->Write();
   hPtSim->Write();
   hPres->Write();
   h1_Pres->Write();
@@ -167,22 +197,45 @@ void STAMuonAnalyzer::endJob(){
   hRecEta->Write();
   hDeltaEta->Write();
   hDeltaPhi->Write();
+  hDeltaPhiPlus->Write();
+  hDeltaPhiMinus->Write();
   hSimPhi->Write();
   hRecPhi->Write();
   hNumSimTracks->Write();
   hNumMuonSimTracks->Write();
   hNumRecTracks->Write();
+  hNumGEMSimHits->Write();
+  hNumCSCSimHits->Write();
+  hNumGEMRecHits->Write();
+  hNumCSCRecHits->Write();
   hPtResVsPt->Write();
   hInvPtResVsPt->Write();
   hDPhiVsPt->Write();
   hDenPt->Write();
   hDenEta->Write();
+  hDenPhi->Write();
+  hDenPhiPlus->Write();
+  hDenPhiMinus->Write();
   hNumPt->Write();
   hNumEta->Write();
-  hPullGEM->Write();
+  hNumPhi->Write();
+  hNumPhiPlus->Write();
+  hNumPhiMinus->Write();
+  hPullGEMx->Write();
+  hPullGEMy->Write();
+  hPullGEMz->Write();
   hPullCSC->Write();
   hGEMRecHitEta->Write();
+  hGEMRecHitPhi->Write();
   hDR->Write();
+  hDR2->Write();
+  hDR3->Write();
+  hRecPhi2DPlusLayer1->Write();
+  hRecPhi2DMinusLayer1->Write();
+  hRecPhi2DPlusLayer2->Write();
+  hRecPhi2DMinusLayer2->Write();
+  hCharge->Write();
+  hDeltaCharge->Write();
   theFile->Close();
 }
  
@@ -195,6 +248,9 @@ void STAMuonAnalyzer::analyze(const Event & event, const EventSetup& eventSetup)
   // Get the RecTrack collection from the event
   Handle<reco::TrackCollection> staTracks;
   event.getByLabel(staTrackLabel_, staTracks);
+
+  Handle<SimTrackContainer> simTracks;
+  event.getByLabel("g4SimHits",simTracks);
 
   ESHandle<MagneticField> theMGField;
   eventSetup.get<IdealMagneticFieldRecord>().get(theMGField);
@@ -224,6 +280,7 @@ void STAMuonAnalyzer::analyze(const Event & event, const EventSetup& eventSetup)
   event.getByLabel(edm::InputTag("g4SimHits","MuonCSCHits"), CSCHits);
 
   double recPt = 0.;
+  double recPtIP = 0.;
   double simPt = 0.;
   double simEta = 0.;
   double simPhi = 0.;
@@ -235,9 +292,6 @@ void STAMuonAnalyzer::analyze(const Event & event, const EventSetup& eventSetup)
 
   // Get the SimTrack collection from the event
   if(theDataType == "SimData"){
-
-    	Handle<SimTrackContainer> simTracks;
-    	event.getByLabel("g4SimHits",simTracks);
 
 	//numRecoTrack = simTracks->size();
   	hNumSimTracks->Fill(simTracks->size());
@@ -277,9 +331,6 @@ void STAMuonAnalyzer::analyze(const Event & event, const EventSetup& eventSetup)
   
   cout<<"Reconstructed tracks: " << staTracks->size() << endl;
 
-  Handle<SimTrackContainer> simTracks;
-  event.getByLabel("g4SimHits",simTracks);
-
   SimTrackContainer::const_iterator simTrack;
 
   for (simTrack = simTracks->begin(); simTrack != simTracks->end(); ++simTrack){
@@ -296,8 +347,11 @@ void STAMuonAnalyzer::analyze(const Event & event, const EventSetup& eventSetup)
   			GlobalVector tsosVect = innerTSOS.globalMomentum();
   			math::XYZVectorD reco(tsosVect.x(), tsosVect.y(), tsosVect.z());
 
-			double recEta = reco.eta();
-			double recPhi = reco.phi();
+			//double recEta = reco.eta();
+			//double recPhi = reco.phi();
+
+			double recEta = staTrack->momentum().eta();
+			double recPhi = staTrack->momentum().phi();
 			//cout<<"RecEta "<<recEta<<" recPhi "<<recPhi<<std::endl;
 			simEta = (*simTrack).momentum().eta();
 			simPhi = (*simTrack).momentum().phi();
@@ -307,11 +361,14 @@ void STAMuonAnalyzer::analyze(const Event & event, const EventSetup& eventSetup)
 
 			if(dR > 2) continue;
 		    
-		    	recPt = track.impactPointTSCP().momentum().perp();    
+		    	//recPt = track.impactPointTSCP().momentum().perp();  
+			recPt = staTrack->pt();
+			recPtIP = track.impactPointTSCP().momentum().perp();
 		    	//cout<<" p: "<<track.impactPointTSCP().momentum().mag()<< " pT: "<<recPt<<endl;
 		    	//cout<<" chi2: "<<track.chi2()<<endl;
 		    
 		    	hPtRec->Fill(recPt);
+		    	hDeltaPtRec->Fill(recPt - recPtIP);
 
 		    	//cout << "Inner TSOS:"<<endl;
 		    	//cout << debug.dumpTSOS(innerTSOS);
@@ -329,46 +386,101 @@ void STAMuonAnalyzer::analyze(const Event & event, const EventSetup& eventSetup)
 		      		//cout<<"r: "<< r <<" z: "<<z <<endl;
 		    	}*/
 	    
-		    	if(recPt && theDataType == "SimData" && abs(recEta) > 1.6 && abs(recEta) < 2.4){
+		    	if(recPt && theDataType == "SimData" && abs(recEta) > 1.6 && abs(recEta) < 2.1){
 
 		      		hDenPt->Fill(recPt);
 		      		hDenEta->Fill(recEta);
 
-		    	 	bool hasGemRecHits = false;
-		      		for(trackingRecHit_iterator recHit = staTrack->recHitsBegin(); recHit != staTrack->recHitsEnd(); ++recHit){
+				float phi_02pi = recPhi < 0 ? recPhi + TMath::Pi() : recPhi;
+				float phiDeg = phi_02pi * 180/ TMath::Pi();
+				//int phiSec = phiDeg%18;
 
-		      			const GeomDet* geomDet = theTrackingGeometry->idToDet((*recHit)->geographicalId());
-		      			//double r = geomDet->surface().position().perp();
-		      			double z = geomDet->toGlobal((*recHit)->localPosition()).z();
-		      			double x_reco = (*recHit)->localPosition().x();
-		      			double err_x_reco = (*recHit)->localPosition().x();;
-		      			double x = geomDet->toGlobal((*recHit)->localPosition()).x();
-		      			double y = geomDet->toGlobal((*recHit)->localPosition()).y();
-					GlobalPoint pointRecHit = GlobalPoint(x,y,z);
-		      			//std::cout<<"x: "<<x<<" y: "<<y<<" r: "<< r <<" z: "<<z<<std::endl;
+		      		hDenPhi->Fill(phi_02pi);
+		      		if(recEta > 0) hDenPhiPlus->Fill(phiDeg);
+		      		else if(recEta < 0) hDenPhiMinus->Fill(phiDeg);
+
+		    	 	bool hasGemRecHits = false;
+				int numGEMRecHits = 0;
+				int numGEMSimHits = 0;
+				int numCSCRecHits = 0;
+				int numCSCSimHits = 0;
+		      		for(trackingRecHit_iterator recHit = staTrack->recHitsBegin(); recHit != staTrack->recHitsEnd(); ++recHit){
 
 					if ((*recHit)->geographicalId().det() == DetId::Muon){
 
 					if ((*recHit)->geographicalId().subdetId() == MuonSubdetId::GEM){
 
 						//std::cout<<"GEM id: "<<GEMDetId((*recHit)->geographicalId().rawId())<<std::endl;
+						numGEMRecHits++;
 						hasGemRecHits = true;
-						hGEMRecHitEta->Fill(pointRecHit.eta());
-						std::cout<<"Eta GEMRecHits "<<pointRecHit.eta()<<std::endl;
-						std::cout<<"Phi GEMRecHits "<<pointRecHit.phi()<<std::endl;
 
-		  				for (edm::PSimHitContainer::const_iterator itHit = GEMHits->begin(); itHit != GEMHits->end(); ++itHit){
-						 
-						    	if (std::abs(itHit->particleType())==13){
+						if(!isGlobalMuon_){
+
+						   	GEMDetId id((*recHit)->geographicalId());
+
+						    	int region = id.region();
+						    	int layer = id.layer();
+						    	int chamber = id.chamber();
+						    	//int roll = id.roll();
+
+			      				const GeomDet* geomDet = theTrackingGeometry->idToDet((*recHit)->geographicalId());
+			      				//double r = geomDet->surface().position().perp();
+			      				double x_reco = (*recHit)->localPosition().x();
+			      				double err_x_reco = (*recHit)->localPosition().x();
+			      				double y_reco = (*recHit)->localPosition().y();
+			      				double err_y_reco = (*recHit)->localPosition().y();
+			      				double z_reco = (*recHit)->localPosition().z();
+			      				double err_z_reco = (*recHit)->localPosition().z();
+			      				double x = geomDet->toGlobal((*recHit)->localPosition()).x();
+			      				double y = geomDet->toGlobal((*recHit)->localPosition()).y();
+			      				double z = geomDet->toGlobal((*recHit)->localPosition()).z();
+							GlobalPoint pointRecHit = GlobalPoint(x,y,z);
+
+			      				//std::cout<<"x: "<<x<<" y: "<<y<<" r: "<< r <<" z: "<<z<<std::endl;
+							hGEMRecHitEta->Fill(pointRecHit.eta());
+							hGEMRecHitPhi->Fill(pointRecHit.phi());
+							if(region > 0 && layer == 1) hRecPhi2DPlusLayer1->Fill(pointRecHit.phi(), chamber);
+							else if(region > 0 && layer == 2) hRecPhi2DPlusLayer2->Fill(pointRecHit.phi(), chamber);
+							else if(region < 0 && layer == 1) hRecPhi2DMinusLayer1->Fill(pointRecHit.phi(), chamber);
+							else if(region < 0 && layer == 2) hRecPhi2DMinusLayer2->Fill(pointRecHit.phi(), chamber);
+							std::cout<<"Eta GEMRecHits "<<pointRecHit.eta()<<std::endl;
+							std::cout<<"Phi GEMRecHits "<<pointRecHit.phi()<<std::endl;
+
+			  				for (edm::PSimHitContainer::const_iterator itHit = GEMHits->begin(); itHit != GEMHits->end(); ++itHit){
+							 
+								if(itHit->particleType() != (*simTrack).type()) continue;
+
+								DetId id = DetId(itHit->detUnitId());
+								if (!(id.subdetId() == MuonSubdetId::GEM)) continue;
+
+								GEMDetId idGem = GEMDetId(itHit->detUnitId());
+						    		int region_sim = idGem.region();
+						    		int layer_sim = idGem.layer();
+						    		//int chamber_sim = id.chamber();
+						    		//int roll_sim = id.roll();
+								if (!(region == region_sim && layer == layer_sim)) continue;
+
+        						      	GlobalPoint pointSimHit = theTrackingGeometry->idToDetUnit(id)->toGlobal(itHit->localPosition());
 
 								float x_sim = itHit->localPosition().x();
-								//float err_x_sim = itHit->localPositionError().xx();
-								//float y_sim = itHit->localPosition().y();
-								float dX = x_sim - x_reco;
-								float pull = dX/std::sqrt(err_x_reco);
-								hPullGEM->Fill(pull);
+								float y_sim = itHit->localPosition().y();
+								float z_sim = itHit->localPosition().z();
+								double dR2 = deltaR(pointRecHit.eta(),pointRecHit.phi(),pointSimHit.eta(),pointSimHit.phi());
+								hDR2->Fill(dR2);
+								if(dR2 > 0.1) continue;
 
-						     	}
+								float dX = x_sim - x_reco;
+								float dY = y_sim - y_reco;
+								float dZ = z_sim - z_reco;
+								float pullX = dX/std::sqrt(err_x_reco);
+								float pullY = dY/std::sqrt(err_y_reco);
+								float pullZ = dZ/std::sqrt(err_z_reco);
+								numGEMSimHits++;
+								hPullGEMx->Fill(pullX);
+								hPullGEMy->Fill(pullY);
+								hPullGEMz->Fill(pullZ);
+
+							}
 
 						}
 
@@ -377,19 +489,55 @@ void STAMuonAnalyzer::analyze(const Event & event, const EventSetup& eventSetup)
 					else if((*recHit)->geographicalId().subdetId() == MuonSubdetId::CSC){
 
 						//std::cout<<"CSC id: "<<CSCDetId((*recHit)->geographicalId().rawId())<<std::endl;
+						numCSCRecHits++;
 
-		  				for (edm::PSimHitContainer::const_iterator itHit = CSCHits->begin(); itHit != CSCHits->end(); ++itHit){
-						 
-						    	if (std::abs(itHit->particleType())==13){
+						if(!isGlobalMuon_){
+
+						   	CSCDetId id((*recHit)->geographicalId());
+
+						    	int station = id.station();
+						    	//int layer = id.layer();
+						    	//int chamber = id.chamber();
+						    	//int roll = id.roll();
+
+			      				const GeomDet* geomDet = theTrackingGeometry->idToDet((*recHit)->geographicalId());
+			      				double x = geomDet->toGlobal((*recHit)->localPosition()).x();
+			      				double y = geomDet->toGlobal((*recHit)->localPosition()).y();
+			      				double z = geomDet->toGlobal((*recHit)->localPosition()).z();
+							GlobalPoint pointRecHit = GlobalPoint(x,y,z);
+
+			      				double x_reco = (*recHit)->localPosition().x();
+			      				double err_x_reco = (*recHit)->localPosition().x();
+
+			  				for (edm::PSimHitContainer::const_iterator itHit = CSCHits->begin(); itHit != CSCHits->end(); ++itHit){
+							 
+								if(itHit->particleType() != (*simTrack).type()) continue;
+
+								DetId id = DetId(itHit->detUnitId());
+								if (!(id.subdetId() == MuonSubdetId::CSC)) continue;
+
+								CSCDetId idCsc = CSCDetId(itHit->detUnitId());
+						    		//int layer_sim = idCsc.layer();
+						    		int station_sim = idCsc.station();
+						    		//int chamber_sim = idCsc.chamber();
+						    		//int roll_sim = idCsc.roll();
+								if (!(station == station_sim)) continue;
+
+        						      	GlobalPoint pointSimHit = theTrackingGeometry->idToDetUnit(id)->toGlobal(itHit->localPosition());
 
 								float x_sim = itHit->localPosition().x();
+								double dR2 = deltaR(pointRecHit.eta(),pointRecHit.phi(),pointSimHit.eta(),pointSimHit.phi());
+								hDR3->Fill(dR2);
+								if(dR2 > 0.1) continue;
+
 								//float err_x_sim = itHit->localPositionError().xx();
 								//float y_sim = itHit->localPosition().y();
 								float dX = x_sim - x_reco;
 								float pull = dX/std::sqrt(err_x_reco);
+								numCSCSimHits++;
 								hPullCSC->Fill(pull);
 
-						     	}
+							}
 
 						}
 
@@ -399,9 +547,20 @@ void STAMuonAnalyzer::analyze(const Event & event, const EventSetup& eventSetup)
 
 		      		}
 
+  				hNumGEMRecHits->Fill(numGEMRecHits);
+  				hNumGEMSimHits->Fill(numGEMSimHits);
+  				hNumCSCRecHits->Fill(numCSCRecHits);
+  				hNumCSCSimHits->Fill(numCSCSimHits);
+
 		      		if(noGEMCase_) hasGemRecHits = true;
 
 		      		if(hasGemRecHits){
+
+					int qGen = simTrack->charge();
+					int qRec = staTrack->charge();
+
+					hCharge->Fill(qGen,qRec);
+					hDeltaCharge->Fill(simPt,qGen-qRec);
 
 					cout<<"RecEta "<<recEta<<" recPhi "<<recPhi<<std::endl;
 					cout<<"SimEta "<<simEta<<" SimPhi "<<simPhi<<std::endl;
@@ -410,7 +569,8 @@ void STAMuonAnalyzer::analyze(const Event & event, const EventSetup& eventSetup)
 					hDR->Fill(dR);
 
 		      			hPres->Fill((recPt-simPt)/simPt);
-		      			hPtResVsPt->Fill(simPt, abs((recPt-simPt)/simPt));
+		      			//hPtResVsPt->Fill(simPt, abs((recPt-simPt)/simPt));
+		      			hPtResVsPt->Fill(simPt, (recPt-simPt)/simPt);
 		      			hPtSim->Fill(simPt);
 
 		      			hPTDiff->Fill(recPt-simPt);
@@ -418,6 +578,8 @@ void STAMuonAnalyzer::analyze(const Event & event, const EventSetup& eventSetup)
 
 		      			hDeltaEta->Fill(simEta - recEta);
 		      			hDeltaPhi->Fill(simPhi - recPhi);
+					if(track.charge() > 0) hDeltaPhiPlus->Fill(simPhi - recPhi);
+					else if(track.charge() < 0) hDeltaPhiMinus->Fill(simPhi - recPhi);
 
 		      			hRecPhi->Fill(recPhi);
 		      			//hPTDiff2->Fill(track.innermostMeasurementState().globalMomentum().perp()-simPt);
@@ -427,13 +589,18 @@ void STAMuonAnalyzer::analyze(const Event & event, const EventSetup& eventSetup)
 		      			//if( ((recPt-simPt)/simPt) <= -0.4)
 					//	cout<<"Out of Res: "<<(recPt-simPt)/simPt<<endl;
 
-		      			h1_Pres->Fill((1/recPt - 1/simPt)/(1/simPt));
-		      			hInvPtResVsPt->Fill(simPt, abs((1/recPt - 1/simPt)/(1/simPt)));
+		      			h1_Pres->Fill((qRec/recPt - qGen/simPt)/(qGen/simPt));
+		      			hInvPtResVsPt->Fill(simPt, (1/recPt - 1/simPt)/(1/simPt));
+		      			//hInvPtResVsPt->Fill(simPt, (qRec/recPt - qGen/simPt)/(qGen/simPt));
 
 		      			hDPhiVsPt->Fill(simPt, recPhi-simPhi);
 
 		      			hNumPt->Fill(recPt);
 		      			hNumEta->Fill(recEta);
+		      			hNumPhi->Fill(phi_02pi);
+
+		      			if(recEta > 0) hNumPhiPlus->Fill(phiDeg);
+		      			else if(recEta < 0) hNumPhiMinus->Fill(phiDeg);
 
 		      		}
 
