@@ -49,12 +49,17 @@ private:
   std::string theRootFileName;
   TFile* theFile;
 
+  std::map<std::string,TH1F*> histContainer_;
+  std::map<std::string,TH2F*> histContainer2D_; 
+
   edm::InputTag staTrackLabel_;
   std::string theSeedCollectionLabel;
   bool noGEMCase_;
+  bool isGlobalMuon_;
 
   // Histograms
   TH1F *hPtRec;
+  TH1F *hDeltaPtRec;
   TH1F *hPtSim; 
   TH1F *hPres;
   TH1F *h1_Pres;
@@ -66,23 +71,45 @@ private:
   TH1F *hRecEta;
   TH1F *hDeltaEta;
   TH1F *hDeltaPhi;
+  TH1F *hDeltaPhiPlus;
+  TH1F *hDeltaPhiMinus;
   TH1F *hSimPhi;
   TH1F *hRecPhi;
   TH1F *hNumSimTracks;
   TH1F *hNumMuonSimTracks;
   TH1F *hNumRecTracks;
+  TH1F *hNumGEMSimHits;
+  TH1F *hNumCSCSimHits;
+  TH1F *hNumGEMRecHits;
+  TH1F *hNumCSCRecHits;
   TH2F *hPtResVsPt;
   TH2F *hInvPtResVsPt;
   TH2F *hDPhiVsPt;
   TH1F *hDenPt;
   TH1F *hDenEta;
+  TH1F *hDenPhi;
+  TH1F *hDenPhiPlus;
+  TH1F *hDenPhiMinus;
   TH1F *hNumPt;
   TH1F *hNumEta;
-  TH1F *hPullGEM;
+  TH1F *hNumPhi;
+  TH1F *hNumPhiPlus;
+  TH1F *hNumPhiMinus;
+  TH1F *hPullGEMx;
+  TH1F *hPullGEMy;
+  TH1F *hPullGEMz;
   TH1F *hPullCSC;
   TH1F *hGEMRecHitEta;
+  TH1F *hGEMRecHitPhi;
   TH1F *hDR;
-
+  TH1F *hDR2;
+  TH1F *hDR3;
+  TH2F *hRecPhi2DPlusLayer1;
+  TH2F *hRecPhi2DMinusLayer1;  
+  TH2F *hRecPhi2DPlusLayer2;
+  TH2F *hRecPhi2DMinusLayer2;  
+  TH2F *hDeltaCharge;
+  TH2F *hCharge;
   // Counters
   int numberOfSimTracks;
   int numberOfRecTracks;
