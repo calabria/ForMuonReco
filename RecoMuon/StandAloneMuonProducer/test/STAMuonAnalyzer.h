@@ -90,11 +90,19 @@ private:
   TH1F *hDenPhi;
   TH1F *hDenPhiPlus;
   TH1F *hDenPhiMinus;
+  TH1F *hDenSimPt;
+  TH1F *hDenSimEta;
+  TH1F *hDenSimPhiPlus;
+  TH1F *hDenSimPhiMinus;
   TH1F *hNumPt;
   TH1F *hNumEta;
   TH1F *hNumPhi;
   TH1F *hNumPhiPlus;
   TH1F *hNumPhiMinus;
+  TH1F *hNumSimPt;
+  TH1F *hNumSimEta;
+  TH1F *hNumSimPhiPlus;
+  TH1F *hNumSimPhiMinus;
   TH1F *hPullGEMx;
   TH1F *hPullGEMy;
   TH1F *hPullGEMz;
@@ -110,6 +118,8 @@ private:
   TH2F *hRecPhi2DMinusLayer2;  
   TH2F *hDeltaCharge;
   TH2F *hCharge;
+  TH2F *hDeltaPhiVsSimTrackPhi;
+  TH2F *hDeltaPhiVsSimTrackPhi2;
   // Counters
   int numberOfSimTracks;
   int numberOfRecTracks;
