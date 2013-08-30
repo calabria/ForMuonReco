@@ -164,10 +164,10 @@ void STAMuonAnalyzer::beginJob(){
   hNumSimPhiPlus = new TH1F("NumSimPhiPlus","NumSimPhiMinus",360,0,180);
   hNumSimPhiMinus = new TH1F("NumSimPhiMinus","NumSimPhiMinus",360,0,180);
 
-  hPullGEMx = new TH1F("PullGEMx", "(x_{mc} - x_{rec}) / #sigma",200,-1.,1.);
-  hPullGEMy = new TH1F("PullGEMy", "(y_{mc} - y_{rec}) / #sigma",200,-1.,1.);
-  hPullGEMz = new TH1F("PullGEMz", "(z_{mc} - z_{rec}) / #sigma",200,-1.,1.);
-  hPullCSC = new TH1F("PullCSC", "(x_{mc} - x_{rec}) / #sigma",500,-15.,15.);
+  hPullGEMx = new TH1F("PullGEMx", "(x_{mc} - x_{rec}) / #sigma",500,-10.,10.);
+  hPullGEMy = new TH1F("PullGEMy", "(y_{mc} - y_{rec}) / #sigma",500,-10.,10.);
+  hPullGEMz = new TH1F("PullGEMz", "(z_{mc} - z_{rec}) / #sigma",500,-10.,10.);
+  hPullCSC = new TH1F("PullCSC", "(x_{mc} - x_{rec}) / #sigma",500,-10.,10.);
 
   hGEMRecHitEta = new TH1F("GEMRecHitEta","GEM RecHits #eta",100,-2.5,2.5);
   hGEMRecHitPhi = new TH1F("GEMRecHitPhi","GEM RecHits #phi",360,-TMath::Pi(),TMath::Pi());
@@ -320,22 +320,22 @@ void STAMuonAnalyzer::analyze(const Event & event, const EventSetup& eventSetup)
     	//cout<<"Simulated tracks: "<<endl;
     	for (simTrack = simTracks->begin(); simTrack != simTracks->end(); ++simTrack){
 
-	      	if (abs((*simTrack).type()) == 13) {
+	      	if (!(abs((*simTrack).type()) == 13)) continue; 
+  		if ((*simTrack).noVertex()) continue;
+  		if ((*simTrack).noGenpart()) continue;
 
-			//cout<<"Sim pT: "<<(*simTrack).momentum().pt()<<endl;
-			simPt=(*simTrack).momentum().pt();
-			//cout<<"Sim Eta: "<<(*simTrack).momentum().eta()<<endl;
-			simEta = (*simTrack).momentum().eta();
+		//cout<<"Sim pT: "<<(*simTrack).momentum().pt()<<endl;
+		simPt=(*simTrack).momentum().pt();
+		//cout<<"Sim Eta: "<<(*simTrack).momentum().eta()<<endl;
+		simEta = (*simTrack).momentum().eta();
 
-			//cout<<"Sim Phi: "<<(*simTrack).momentum().phi()<<endl;
-			simPhi = (*simTrack).momentum().phi();
+		//cout<<"Sim Phi: "<<(*simTrack).momentum().phi()<<endl;
+		simPhi = (*simTrack).momentum().phi();
 
-			numberOfSimTracks++;
-			simCount++;
-			hSimEta->Fill((*simTrack).momentum().eta());
-			hSimPhi->Fill((*simTrack).momentum().phi());
-
-	      	}    
+		numberOfSimTracks++;
+		simCount++;
+		hSimEta->Fill((*simTrack).momentum().eta());
+		hSimPhi->Fill((*simTrack).momentum().phi());	
 
     	}
 
@@ -353,6 +353,14 @@ void STAMuonAnalyzer::analyze(const Event & event, const EventSetup& eventSetup)
   for (simTrack = simTracks->begin(); simTrack != simTracks->end(); ++simTrack){
 
 	      	if (abs((*simTrack).type()) != 13) continue;
+  		if ((*simTrack).noVertex()) continue;
+  		if ((*simTrack).noGenpart()) continue;
+
+		simEta = (*simTrack).momentum().eta();
+		simPhi = (*simTrack).momentum().phi();
+		//cout<<"SimEta "<<simEta<<" SimPhi "<<simPhi<<std::endl;
+
+		if (abs(simEta) > 2.1 || abs(simEta) < 1.6) continue;
 
 	  	for (staTrack = staTracks->begin(); staTrack != staTracks->end(); ++staTrack){//Inizio del loop sulle STA track
 
@@ -370,13 +378,10 @@ void STAMuonAnalyzer::analyze(const Event & event, const EventSetup& eventSetup)
 			double recEta = staTrack->momentum().eta();
 			double recPhi = staTrack->momentum().phi();
 			//cout<<"RecEta "<<recEta<<" recPhi "<<recPhi<<std::endl;
-			simEta = (*simTrack).momentum().eta();
-			simPhi = (*simTrack).momentum().phi();
-			//cout<<"SimEta "<<simEta<<" SimPhi "<<simPhi<<std::endl;
 			double dR = sqrt(pow((simEta-recEta),2) + pow((simPhi-recPhi),2));
 			//cout<<"dR "<<dR<<std::endl;
 
-			if(dR > 2) continue;
+			if(dR > 0.1) continue;
 		    
 		    	//recPt = track.impactPointTSCP().momentum().perp();  
 			recPt = staTrack->pt();
@@ -465,22 +470,12 @@ void STAMuonAnalyzer::analyze(const Event & event, const EventSetup& eventSetup)
 			      				const GeomDet* geomDet = theTrackingGeometry->idToDet((*recHit)->geographicalId());
 			      				//double r = geomDet->surface().position().perp();
 			      				double x_reco = (*recHit)->localPosition().x();
-			      				double err_x_reco = (*recHit)->localPosition().x();
+			      				double err_x_reco = (*recHit)->localPositionError().xx();
 
 			      				double x = geomDet->toGlobal((*recHit)->localPosition()).x();
 			      				double y = geomDet->toGlobal((*recHit)->localPosition()).y();
 			      				double z = geomDet->toGlobal((*recHit)->localPosition()).z();
 							GlobalPoint pointRecHit = GlobalPoint(x,y,z);
-							
-							if(phiDeg > 5 && phiDeg < 15){
-
-								//int stripNum = gemrechit->firstClusterStrip();
-
-			      					std::cout<<"Local x: "<<x_reco<<std::endl;
-			      					std::cout<<"Global x: "<<x<<" y: "<<y<<" z: "<<z<<std::endl;
-			      					//std::cout<<"StripNumber: "<<stripNum<<std::endl;
-
-							}
 							
 							hGEMRecHitEta->Fill(pointRecHit.eta());
 							hGEMRecHitPhi->Fill(pointRecHit.phi());
@@ -551,7 +546,7 @@ void STAMuonAnalyzer::analyze(const Event & event, const EventSetup& eventSetup)
 							GlobalPoint pointRecHit = GlobalPoint(x,y,z);
 
 			      				double x_reco = (*recHit)->localPosition().x();
-			      				double err_x_reco = (*recHit)->localPosition().x();
+			      				double err_x_reco = (*recHit)->localPositionError().xx();
 
 			  				for (edm::PSimHitContainer::const_iterator itHit = CSCHits->begin(); itHit != CSCHits->end(); ++itHit){
 							 
@@ -634,8 +629,8 @@ void STAMuonAnalyzer::analyze(const Event & event, const EventSetup& eventSetup)
 					//	cout<<"Out of Res: "<<(recPt-simPt)/simPt<<endl;
 
 		      			h1_Pres->Fill((qRec/recPt - qGen/simPt)/(qGen/simPt));
-		      			hInvPtResVsPt->Fill(simPt, (1/recPt - 1/simPt)/(1/simPt));
-		      			//hInvPtResVsPt->Fill(simPt, (qRec/recPt - qGen/simPt)/(qGen/simPt));
+		      			//hInvPtResVsPt->Fill(simPt, (1/recPt - 1/simPt)/(1/simPt));
+		      			hInvPtResVsPt->Fill(simPt, (qRec/recPt - qGen/simPt)/(qGen/simPt));
 
 		      			hDPhiVsPt->Fill(simPt, recPhi-simPhi);
 
