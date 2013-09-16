@@ -56,6 +56,7 @@ private:
   std::string theSeedCollectionLabel;
   bool noGEMCase_;
   bool isGlobalMuon_;
+  bool includeME11_;
 
   // Histograms
   TH1F *hPtRec;
@@ -84,6 +85,8 @@ private:
   TH1F *hNumCSCRecHits;
   TH2F *hPtResVsPt;
   TH2F *hInvPtResVsPt;
+  TH2F *hPtResVsEta;
+  TH2F *hInvPtResVsEta;
   TH2F *hDPhiVsPt;
   TH1F *hDenPt;
   TH1F *hDenEta;
@@ -120,6 +123,13 @@ private:
   TH2F *hCharge;
   TH2F *hDeltaPhiVsSimTrackPhi;
   TH2F *hDeltaPhiVsSimTrackPhi2;
+  TH2F *hRecoPtVsSimPt;
+  TH2F *hDeltaPtVsSimPt;
+  TH1F *hTracksWithME11;
+  TH1F *hPtSimCorr;
+  TH2F *hPtResVsPtCorr;
+  TH2F *hInvPtResVsPtCorr;
+  TH1F *hCSCorGEM;
   // Counters
   int numberOfSimTracks;
   int numberOfRecTracks;
