@@ -90,6 +90,7 @@ STAMuonAnalyzer::STAMuonAnalyzer(const ParameterSet& pset):
 
   noGEMCase_ = pset.getUntrackedParameter<bool>("NoGEMCase");
   isGlobalMuon_ = pset.getUntrackedParameter<bool>("isGlobalMuon",false);
+  includeME11_ = pset.getUntrackedParameter<bool>("includeME11",true);
 
   numberOfSimTracks=0;
   numberOfRecTracks=0;
@@ -104,9 +105,9 @@ void STAMuonAnalyzer::beginJob(){
   theFile = new TFile(theRootFileName.c_str(), "RECREATE");
   theFile->cd();
 
-  hPtRec = new TH1F("pTRec","p_{T}^{rec}",200,0,1000);
+  hPtRec = new TH1F("pTRec","p_{T}^{rec}",201,-2.5,1002.5);
   hDeltaPtRec = new TH1F("DeltapTRec","#Delta p_{T}^{rec}",200,-1,1);
-  hPtSim = new TH1F("pTSim","p_{T}^{gen} ",200,0,1000);
+  hPtSim = new TH1F("pTSim","p_{T}^{gen} ",201,-2.5,1002.5);
 
   hPTDiff = new TH1F("pTDiff","p_{T}^{rec} - p_{T}^{gen} ",400,-1000,1000);
   hPTDiff2 = new TH1F("pTDiff2","p_{T}^{rec} - p_{T}^{gen} ",400,-1000,1000);
@@ -114,8 +115,8 @@ void STAMuonAnalyzer::beginJob(){
   hPTDiffvsEta = new TH2F("PTDiffvsEta","p_{T}^{rec} - p_{T}^{gen} VS #eta",100,-2.5,2.5,200,-1000,1000);
   hPTDiffvsPhi = new TH2F("PTDiffvsPhi","p_{T}^{rec} - p_{T}^{gen} VS #phi",100,-6,6,200,-1000,1000);
 
-  hPres = new TH1F("pTRes","pT Resolution",100,-2,2);
-  h1_Pres = new TH1F("invPTRes","1/pT Resolution",100,-2,2);
+  hPres = new TH1F("pTRes","pT Resolution",200,-1,1);
+  h1_Pres = new TH1F("invPTRes","1/pT Resolution",200,-1,1);
 
   hSimEta = new TH1F("PSimEta","SimTrack #eta",100,-2.5,2.5);
   hRecEta = new TH1F("PRecEta","RecTrack #eta",100,-2.5,2.5);
@@ -140,26 +141,30 @@ void STAMuonAnalyzer::beginJob(){
   hNumCSCRecHits = new TH1F("NumCSCRecHits","NumCSCRecHits",10,0,10);
 
   //Double_t nbins[] = {0,10,30,50,100,150,200,300,500,750,1000};
+  hRecoPtVsSimPt = new TH2F("RecoPtVsSimPt","p_{T}^{Reco} vs. p_{T}^{Sim}",201,-2.5,1002.5,201,-2.5,1002.5);
+  hDeltaPtVsSimPt = new TH2F("DeltaPtVsSimPt","(p_{T}^{Reco} - p_{T}^{Sim}) vs. p_{T}^{Sim}",201,-2.5,1002.5,500,-500,500);
+  hPtResVsPt = new TH2F("PtResVsPt","p_{T} Resolution vs. p_{T}",201,-2.5,1002.5,200,-1,1);
+  hInvPtResVsPt = new TH2F("InvPtResVsPt","1/p_{T} Resolution vs. p_{T}",201,-2.5,1002.5,200,-1,1);
+  hDPhiVsPt = new TH2F("DPhiVsPt","#Delta#phi vs. p_{T}",201,-2.5,1002.5,100,-6,6);
 
-  hPtResVsPt = new TH2F("PtResVsPt","p_{T} Resolution vs. p_{T}",10,0,1000,100,-2,2);
-  hInvPtResVsPt = new TH2F("InvPtResVsPt","1/p_{T} Resolution vs. p_{T}",10,0,1000,100,-2,2);
-  hDPhiVsPt = new TH2F("DPhiVsPt","#Delta#phi vs. p_{T}",10,0,1000,100,-6,6);
+  hPtResVsEta = new TH2F("PtResVsEta","p_{T} Resolution vs. #eta",100,-2.5,2.5,200,-1,1);
+  hInvPtResVsEta = new TH2F("InvPtResVsEta","1/p_{T} Resolution vs. #eta",100,-2.5,2.5,200,-1,1);
 
-  hDenPt = new TH1F("DenPt","DenPt",10,0,1000);
+  hDenPt = new TH1F("DenPt","DenPt",201,-2.5,1002.5);
   hDenEta = new TH1F("DenEta","DenEta",100,-2.5,2.5);
   hDenPhi = new TH1F("DenPhi","DenPhi",36,-TMath::Pi(),TMath::Pi());
   hDenPhiPlus = new TH1F("DenPhiPlus","DenPhiMinus",360,0,180);
   hDenPhiMinus = new TH1F("DenPhiMinus","DenPhiMinus",360,0,180);
-  hDenSimPt = new TH1F("DenSimPt","DenSimPt",10,0,1000);
+  hDenSimPt = new TH1F("DenSimPt","DenSimPt",201,-2.5,1002.5);
   hDenSimEta = new TH1F("DenSimEta","DenSimEta",100,-2.5,2.5);
   hDenSimPhiPlus = new TH1F("DenSimPhiPlus","DenSimPhiMinus",360,0,180);
   hDenSimPhiMinus = new TH1F("DenSimPhiMinus","DenSimPhiMinus",360,0,180);
-  hNumPt = new TH1F("NumPt","NumPt",10,0,1000);
+  hNumPt = new TH1F("NumPt","NumPt",201,-2.5,1002.5);
   hNumEta = new TH1F("NumEta","NumEta",100,-2.5,2.5);
   hNumPhi = new TH1F("NumPhi","NumPhi",36,-TMath::Pi(),TMath::Pi());
   hNumPhiPlus = new TH1F("NumPhiPlus","NumPhiMinus",360,0,180);
   hNumPhiMinus = new TH1F("NumPhiMinus","NumPhiMinus",360,0,180);
-  hNumSimPt = new TH1F("NumSimPt","NumSimPt",10,0,1000);
+  hNumSimPt = new TH1F("NumSimPt","NumSimPt",201,-2.5,1002.5);
   hNumSimEta = new TH1F("NumSimEta","NumSimEta",100,-2.5,2.5);
   hNumSimPhiPlus = new TH1F("NumSimPhiPlus","NumSimPhiMinus",360,0,180);
   hNumSimPhiMinus = new TH1F("NumSimPhiMinus","NumSimPhiMinus",360,0,180);
@@ -177,11 +182,19 @@ void STAMuonAnalyzer::beginJob(){
   hDR3 = new TH1F("DRCSC","#Delta R (SIM-RECO)",500,0,0.5);
 
   hCharge = new TH2F("Charge","q (SIM-RECO)",6,-3,3,6,-3,3);
-  hDeltaCharge = new TH2F("DeltaCharge","#Delta q (SIM-RECO)",10,0,1000,6,-3,3);
+  hDeltaCharge = new TH2F("DeltaCharge","#Delta q (SIM-RECO)",201,-2.5,1002.5,6,-3,3);
 
   hDeltaPhiVsSimTrackPhi = new TH2F("DeltaPhiVsSimTrackPhi","DeltaPhiVsSimTrackPhi",360,0,180,2000,-20,+20);
   hDeltaPhiVsSimTrackPhi2 = new TH2F("DeltaPhiVsSimTrackPhi2","DeltaPhiVsSimTrackPhi2",360,0,180,2000,-20,+20);
   //hPTDiffvsEta = new TH2F("PTDiffvsEta","p_{T}^{rec} - p_{T}^{gen} VS #eta",100,-2.5,2.5,200,-1000,1000);
+
+  hTracksWithME11 = new TH1F("TracksWithME11", "TracksWithME11",2,0.,2.);
+
+  hPtSimCorr = new TH1F("pTSimCorr","p_{T}^{Corr} ",200,0,1000);
+  hPtResVsPtCorr = new TH2F("PtResVsPtCorr","p_{T} Resolution vs. p_{T}",201,-2.5,1002.5,200,-1,1);
+  hInvPtResVsPtCorr = new TH2F("InvPtResVsPtCorr","1/p_{T} Resolution vs. p_{T}",201,-2.5,1002.5,200,-1,1);
+
+  hCSCorGEM = new TH1F("CSCorGEM", "CSCorGEM",4,0.,4.);
 
 }
 
@@ -220,6 +233,8 @@ void STAMuonAnalyzer::endJob(){
   hNumCSCRecHits->Write();
   hPtResVsPt->Write();
   hInvPtResVsPt->Write();
+  hPtResVsEta->Write();
+  hInvPtResVsEta->Write();
   hDPhiVsPt->Write();
   hDenPt->Write();
   hDenEta->Write();
@@ -256,6 +271,15 @@ void STAMuonAnalyzer::endJob(){
   hDeltaCharge->Write();
   hDeltaPhiVsSimTrackPhi->Write();
   hDeltaPhiVsSimTrackPhi2->Write();
+  hRecoPtVsSimPt->Write();
+  hDeltaPtVsSimPt->Write();
+  hTracksWithME11->Write();
+
+  hPtSimCorr->Write();
+  hPtResVsPtCorr->Write();
+  hInvPtResVsPtCorr->Write();
+  hCSCorGEM->Write();
+
   theFile->Close();
 }
  
@@ -360,7 +384,7 @@ void STAMuonAnalyzer::analyze(const Event & event, const EventSetup& eventSetup)
 		simPhi = (*simTrack).momentum().phi();
 		//cout<<"SimEta "<<simEta<<" SimPhi "<<simPhi<<std::endl;
 
-		if (abs(simEta) > 2.1 || abs(simEta) < 1.6) continue;
+		if (abs(simEta) > 2.1 || abs(simEta) < 1.64) continue;
 
 	  	for (staTrack = staTracks->begin(); staTrack != staTracks->end(); ++staTrack){//Inizio del loop sulle STA track
 
@@ -408,12 +432,7 @@ void STAMuonAnalyzer::analyze(const Event & event, const EventSetup& eventSetup)
 		      		//cout<<"r: "<< r <<" z: "<<z <<endl;
 		    	}*/
 	    
-		    	if(recPt && theDataType == "SimData" && abs(recEta) > 1.6 && abs(recEta) < 2.1){
-
-		      		hDenPt->Fill(recPt);
-		      		hDenEta->Fill(recEta);
-		      		hDenSimPt->Fill(simPt);
-		      		hDenSimEta->Fill(simEta);
+		    	if(recPt && theDataType == "SimData" && abs(recEta) > 1.64 && abs(recEta) < 2.1){
 
 				float phi_02pi = recPhi < 0 ? recPhi + TMath::Pi() : recPhi;
 				float phiDeg = phi_02pi * 180/ TMath::Pi();
@@ -422,13 +441,8 @@ void STAMuonAnalyzer::analyze(const Event & event, const EventSetup& eventSetup)
 				float phiDegSim = phi_02pi_sim * 180/ TMath::Pi();
 				//int phiSec = phiDeg%18;
 
-		      		hDenPhi->Fill(phi_02pi);
-		      		if(recEta > 0) hDenPhiPlus->Fill(phiDeg);
-		      		else if(recEta < 0) hDenPhiMinus->Fill(phiDeg);
-		      		if(simEta > 0) hDenSimPhiPlus->Fill(phiDegSim);
-		      		else if(simEta < 0) hDenSimPhiMinus->Fill(phiDegSim);
-
 		    	 	bool hasGemRecHits = false;
+				bool hasRecHitsFromCSCME11 = false;
 				int numGEMRecHits = 0;
 				int numGEMSimHits = 0;
 				int numCSCRecHits = 0;
@@ -527,17 +541,18 @@ void STAMuonAnalyzer::analyze(const Event & event, const EventSetup& eventSetup)
 
 					else if((*recHit)->geographicalId().subdetId() == MuonSubdetId::CSC){
 
+						CSCDetId id((*recHit)->geographicalId());
+						//int endcap = id.endcap();
+						int ring = id.ring();
+						int station = id.station();
+						//int layer = id.layer();
+						//int chamber = id.chamber();
+
 						//std::cout<<"CSC id: "<<CSCDetId((*recHit)->geographicalId().rawId())<<std::endl;
 						numCSCRecHits++;
+						if(station == 1 && ring == 1) hasRecHitsFromCSCME11 = true;
 
 						if(!isGlobalMuon_){
-
-						   	CSCDetId id((*recHit)->geographicalId());
-
-						    	int station = id.station();
-						    	//int layer = id.layer();
-						    	//int chamber = id.chamber();
-						    	//int roll = id.roll();
 
 			      				const GeomDet* geomDet = theTrackingGeometry->idToDet((*recHit)->geographicalId());
 			      				double x = geomDet->toGlobal((*recHit)->localPosition()).x();
@@ -591,9 +606,26 @@ void STAMuonAnalyzer::analyze(const Event & event, const EventSetup& eventSetup)
   				hNumCSCRecHits->Fill(numCSCRecHits);
   				hNumCSCSimHits->Fill(numCSCSimHits);
 
-		      		if(noGEMCase_) hasGemRecHits = true;
+				//std::cout<<"CSC ME1/1: "<<hasRecHitsFromCSCME11<<std::endl;
+				hTracksWithME11->Fill(hasRecHitsFromCSCME11);
 
-		      		if(hasGemRecHits){
+				if(hasGemRecHits == true && hasRecHitsFromCSCME11 == true) hCSCorGEM->Fill(0.5);
+				else if(hasGemRecHits == true && hasRecHitsFromCSCME11 == false) hCSCorGEM->Fill(1.5);
+				else if(hasGemRecHits == false && hasRecHitsFromCSCME11 == true) hCSCorGEM->Fill(2.5);
+				else if(hasGemRecHits == false && hasRecHitsFromCSCME11 == false) hCSCorGEM->Fill(3.5);
+
+				if(includeME11_) hasRecHitsFromCSCME11 = true;
+
+				double simPtCorr = 0;
+		      		if(noGEMCase_){ 
+
+					hasGemRecHits = true;
+					simPtCorr = (recPt - 0.00115)/0.9998;
+
+				}
+				else simPtCorr = (recPt - 0.0005451)/0.9999;
+
+		      		if(hasGemRecHits & (includeME11_ ? hasRecHitsFromCSCME11 : !hasRecHitsFromCSCME11)){
 
 					int qGen = simTrack->charge();
 					int qRec = staTrack->charge();
@@ -606,11 +638,17 @@ void STAMuonAnalyzer::analyze(const Event & event, const EventSetup& eventSetup)
 					//cout<<"dR "<<dR<<std::endl;
 
 					hDR->Fill(dR);
+					hRecoPtVsSimPt->Fill(simPt, recPt);
+					hDeltaPtVsSimPt->Fill(simPt, recPt - simPt);
 
 		      			hPres->Fill((recPt-simPt)/simPt);
-		      			//hPtResVsPt->Fill(simPt, abs((recPt-simPt)/simPt));
 		      			hPtResVsPt->Fill(simPt, (recPt-simPt)/simPt);
+		      			hPtResVsEta->Fill(simEta, (recPt-simPt)/simPt);
 		      			hPtSim->Fill(simPt);
+
+		      			hPtResVsPtCorr->Fill(simPt, (simPtCorr-simPt)/simPt);
+		      			hInvPtResVsPtCorr->Fill(simPt, (qRec/simPtCorr - qGen/simPt)/(qGen/simPt));
+		      			hPtSimCorr->Fill(simPtCorr);
 
 		      			hPTDiff->Fill(recPt-simPt);
 		      			hRecEta->Fill(recEta);
@@ -631,6 +669,7 @@ void STAMuonAnalyzer::analyze(const Event & event, const EventSetup& eventSetup)
 		      			h1_Pres->Fill((qRec/recPt - qGen/simPt)/(qGen/simPt));
 		      			//hInvPtResVsPt->Fill(simPt, (1/recPt - 1/simPt)/(1/simPt));
 		      			hInvPtResVsPt->Fill(simPt, (qRec/recPt - qGen/simPt)/(qGen/simPt));
+		      			hInvPtResVsEta->Fill(simEta, (qRec/recPt - qGen/simPt)/(qGen/simPt));
 
 		      			hDPhiVsPt->Fill(simPt, recPhi-simPhi);
 
@@ -646,6 +685,21 @@ void STAMuonAnalyzer::analyze(const Event & event, const EventSetup& eventSetup)
 		      			else if(simEta < 0) hNumSimPhiMinus->Fill(phiDegSim);
 
 		      		}
+
+				if(includeME11_ ? hasRecHitsFromCSCME11 : !hasRecHitsFromCSCME11){
+
+			      		hDenPt->Fill(recPt);
+			      		hDenEta->Fill(recEta);
+			      		hDenSimPt->Fill(simPt);
+			      		hDenSimEta->Fill(simEta);
+
+			      		hDenPhi->Fill(phi_02pi);
+			      		if(recEta > 0) hDenPhiPlus->Fill(phiDeg);
+			      		else if(recEta < 0) hDenPhiMinus->Fill(phiDeg);
+			      		if(simEta > 0) hDenSimPhiPlus->Fill(phiDegSim);
+			      		else if(simEta < 0) hDenSimPhiMinus->Fill(phiDegSim);
+
+				}
 
 		    	}
     
