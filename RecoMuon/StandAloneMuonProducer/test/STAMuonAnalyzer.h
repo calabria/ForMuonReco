@@ -43,6 +43,7 @@ public:
 
   virtual void beginJob() ;
   virtual void endJob() ;
+
 protected:
 
 private:
@@ -87,6 +88,10 @@ private:
   TH2F *hInvPtResVsPt;
   TH2F *hPtResVsEta;
   TH2F *hInvPtResVsEta;
+  TH2F *hPtResVsPtNoCharge;
+  TH2F *hInvPtResVsPtNoCharge;
+  TH2F *hPtResVsEtaNoCharge;
+  TH2F *hInvPtResVsEtaNoCharge;
   TH2F *hDPhiVsPt;
   TH1F *hDenPt;
   TH1F *hDenEta;
@@ -130,6 +135,8 @@ private:
   TH2F *hPtResVsPtCorr;
   TH2F *hInvPtResVsPtCorr;
   TH1F *hCSCorGEM;
+  TH1F *hSimTrackMatch;
+  TH1F *hRecHitMatching;
   // Counters
   int numberOfSimTracks;
   int numberOfRecTracks;
