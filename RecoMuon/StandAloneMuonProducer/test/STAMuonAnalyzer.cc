@@ -100,6 +100,7 @@ STAMuonAnalyzer::STAMuonAnalyzer(const ParameterSet& pset):
 
   numberOfSimTracks=0;
   numberOfRecTracks=0;
+
 }
 
 /// Destructor
@@ -211,6 +212,12 @@ void STAMuonAnalyzer::beginJob(){
   hCSCorGEM = new TH1F("CSCorGEM", "CSCorGEM",4,0.,4.);
   hSimTrackMatch = new TH1F("SimTrackMatch", "SimTrackMatch",2,0.,2.);
   hRecHitMatching = new TH1F("RecHitMatching", "RecHitMatching",2,0.,2.);
+  hRecHitParMatching = new TH1F("RecHitParMatching", "RecHitParMatching",2,0.,2.);
+  hDRMatchVsPt = new TH2F("DRMatchVsPt","DRMatchVsPt",261,-2.5,1302.5,10,0,10);
+
+  hMatchedSimHits = new TH1F("MatchedSimHits","MatchedSimHits",6,-0.5,5.5);
+  hRecoTracksWithMatchedRecHits = new TH2F("RecoTracksWithMatchedRecHits","RecoTracksWithMatchedRecHits",6,-0.5,5.5,6,-0.5,5.5);
+  hDeltaQvsDeltaPt = new TH2F("DeltaQvsDeltaPt","DeltaQvsDeltaPt",100,-2,2,7,-3.5,3.5);
 
 }
 
@@ -301,6 +308,11 @@ void STAMuonAnalyzer::endJob(){
   hCSCorGEM->Write();
   hSimTrackMatch->Write();
   hRecHitMatching->Write();
+  hRecHitParMatching->Write();
+  hDRMatchVsPt->Write();
+  hMatchedSimHits->Write();
+  hRecoTracksWithMatchedRecHits->Write();
+  hDeltaQvsDeltaPt->Write();
 
   theFile->Close();
 }
@@ -378,7 +390,6 @@ edm::PSimHitContainer isTrackMatched(SimTrackContainer::const_iterator simTrack,
 
   for (edm::PSimHitContainer::const_iterator itHit = GEMHits->begin(); itHit != GEMHits->end(); ++itHit){
 							 
-	if(itHit->particleType() != (*simTrack).type()) continue;
 	DetId id = DetId(itHit->detUnitId());
 	if (!(id.subdetId() == MuonSubdetId::GEM)) continue;
   	if(itHit->particleType() != (*simTrack).type()) continue;
@@ -403,6 +414,7 @@ bool isRecHitMatched(edm::PSimHitContainer selGEMSimHits, trackingRecHit_iterato
   int region = id.region();
   int layer = id.layer();
   int chamber = id.chamber();
+  int roll = id.roll();
   int strip = gemGeom->etaPartition(id)->strip(lp1);
  
   for(edm::PSimHitContainer::const_iterator itHit = selGEMSimHits.begin(); itHit != selGEMSimHits.end(); ++itHit){
@@ -411,6 +423,7 @@ bool isRecHitMatched(edm::PSimHitContainer selGEMSimHits, trackingRecHit_iterato
       	int region_sim = idGem.region();
       	int layer_sim = idGem.layer();
       	int chamber_sim = idGem.chamber();
+      	int roll_sim = idGem.roll();
 
       	LocalPoint lp = itHit->entryPoint();
       	int strip_sim = gemGeom->etaPartition(idGem)->strip(lp);
@@ -420,6 +433,7 @@ bool isRecHitMatched(edm::PSimHitContainer selGEMSimHits, trackingRecHit_iterato
       	if(region != region_sim) continue;
       	if(layer != layer_sim) continue;
       	if(chamber != chamber_sim) continue;
+      	if(roll != roll_sim) continue;
 
       	if(abs(strip - strip_sim) < 2) result = true;
 
@@ -522,6 +536,8 @@ void STAMuonAnalyzer::analyze(const Event & event, const EventSetup& eventSetup)
 
   for (simTrack = simTracks->begin(); simTrack != simTracks->end(); ++simTrack){
 
+		int countMatching = 0;
+
 	      	if (abs((*simTrack).type()) != 13) continue;
   		if ((*simTrack).noVertex()) continue;
   		if ((*simTrack).noGenpart()) continue;
@@ -535,8 +551,9 @@ void STAMuonAnalyzer::analyze(const Event & event, const EventSetup& eventSetup)
 
 		edm::PSimHitContainer selGEMSimHits = isTrackMatched(simTrack, event, eventSetup);
 		int size = selGEMSimHits.size();
+		hMatchedSimHits->Fill(size);
 		hSimTrackMatch->Fill(size > 0 ? 1 : 0);
-		if(size == 0) continue;
+		if(size == 0 && noGEMCase_) continue;
 
 	  	for (staTrack = staTracks->begin(); staTrack != staTracks->end(); ++staTrack){//Inizio del loop sulle STA track
 
@@ -558,6 +575,7 @@ void STAMuonAnalyzer::analyze(const Event & event, const EventSetup& eventSetup)
 			//cout<<"dR "<<dR<<std::endl;
 
 			if(dR > 0.1) continue;
+			countMatching++;
 		    
 		    	//recPt = track.impactPointTSCP().momentum().perp();  
 			recPt = staTrack->pt();
@@ -773,13 +791,20 @@ void STAMuonAnalyzer::analyze(const Event & event, const EventSetup& eventSetup)
 
 				if(includeME11_) hasRecHitsFromCSCME11 = true;
 
+				int sizeRH = 0;
 				bool matchingHit = true;
+				bool matchingParHit = false;
 				for(int i = 0; i < (int)collectResults.size(); i++){
 
+					std::cout<<"Result[i] "<<collectResults[i]<<std::endl;
+					if(collectResults[i]) sizeRH++;
 					matchingHit &= collectResults[i];
+					matchingParHit |= collectResults[i];
 
 				}
 				hRecHitMatching->Fill(matchingHit);
+				hRecHitParMatching->Fill(matchingParHit);
+				hRecoTracksWithMatchedRecHits->Fill(collectResults.size(),sizeRH);
 				//std::cout<<"Result "<<matchingHit<<std::endl;
 
 				double simPtCorr = 0;
@@ -792,7 +817,7 @@ void STAMuonAnalyzer::analyze(const Event & event, const EventSetup& eventSetup)
 				}
 				else simPtCorr = (recPt - 0.0005451)/0.9999;
 
-		      		if(hasGemRecHits & matchingHit & (includeME11_ ? hasRecHitsFromCSCME11 : !hasRecHitsFromCSCME11)){
+		      		if(hasGemRecHits /*& matchingHit*/ & (includeME11_ ? hasRecHitsFromCSCME11 : !hasRecHitsFromCSCME11)){
 
 					//TH1::StatOverflows(kTRUE);
 
@@ -846,6 +871,7 @@ void STAMuonAnalyzer::analyze(const Event & event, const EventSetup& eventSetup)
 		      			hInvPtResVsEtaNoCharge->Fill(simEta, (1/recPt - 1/simPt)/(1/simPt));
 
 		      			hInvPtResVsPt->Fill(simPt, (qRec/recPt - qGen/simPt)/(qGen/simPt));
+					hDeltaQvsDeltaPt->Fill( ((qRec/recPt - qGen/simPt)/(qGen/simPt)), (qRec-qGen) );
 		      			hInvPtResVsEta->Fill(simEta, (qRec/recPt - qGen/simPt)/(qGen/simPt));
 
 		      			hDPhiVsPt->Fill(simPt, recPhi-simPhi);
@@ -881,6 +907,8 @@ void STAMuonAnalyzer::analyze(const Event & event, const EventSetup& eventSetup)
 		    	}
     
   	}//Fine loop sulle STA track
+
+	hDRMatchVsPt->Fill(simPt, countMatching);
 
   }//Fine loop sulle SimTrack
 

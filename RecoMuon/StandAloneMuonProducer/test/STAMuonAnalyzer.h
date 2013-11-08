@@ -137,6 +137,11 @@ private:
   TH1F *hCSCorGEM;
   TH1F *hSimTrackMatch;
   TH1F *hRecHitMatching;
+  TH1F *hRecHitParMatching;
+  TH2F *hDRMatchVsPt;
+  TH1F *hMatchedSimHits;
+  TH2F *hRecoTracksWithMatchedRecHits;
+  TH2F *hDeltaQvsDeltaPt;
   // Counters
   int numberOfSimTracks;
   int numberOfRecTracks;
