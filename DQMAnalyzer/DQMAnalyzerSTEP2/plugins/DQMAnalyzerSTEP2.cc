@@ -54,9 +54,9 @@ class DQMAnalyzerSTEP2 : public edm::EDAnalyzer {
       MonitorElement * EfficiencyVsPt;
       MonitorElement * InvPtResVsPt;
       MonitorElement * RmsVsPt;
-      MonitorElement * EfficiencyVsEta;
-      MonitorElement * InvPtResVsEta;
-      MonitorElement * RmsVsEta;
+      MonitorElement * EfficiencyVsEta[7];
+      MonitorElement * InvPtResVsEta[7];
+      MonitorElement * RmsVsEta[7];
 
    private:
       virtual void beginJob() override;
@@ -83,6 +83,7 @@ class DQMAnalyzerSTEP2 : public edm::EDAnalyzer {
 TEfficiency * calcEff(TH1F * h1, TH1F * h2){
 
  	TEfficiency* eff = 0;
+	//std::cout<<h1->GetEntries()<<" "<<h2->GetEntries()<<std::endl;
 	if(TEfficiency::CheckConsistency(*h1,*h2)) eff = new TEfficiency(*h1,*h2);
 
 	return eff;
@@ -91,7 +92,8 @@ TEfficiency * calcEff(TH1F * h1, TH1F * h2){
 
 TEfficiency * calcChargeMisID(TH2F * histo){
 
-  	TH1F * DeltaChargePercentage = new TH1F("DeltaChargePercentage","DeltaChargePercentage",261,-2.5,1302.5);
+	TH1D * DeltaChargePercentage = histo->ProjectionX("chargeMisID",1,1);
+	DeltaChargePercentage->Reset();
   	TH1F * numGem = (TH1F*)DeltaChargePercentage->Clone();
   	TH1F * denGem = (TH1F*)DeltaChargePercentage->Clone();
   	for(int i=1; i<=histo->GetNbinsX(); i++){
@@ -103,7 +105,7 @@ TEfficiency * calcChargeMisID(TH2F * histo){
 		numGem->SetBinContent(i,num1+num3);
 		denGem->SetBinContent(i,num1+num2+num3);
 		
-		//std::cout<<num1<<" "<<num2<<" "<<num3<<std::endl;
+		//if((num1+num3) != 0) std::cout<<num1<<" "<<num2<<" "<<num3<<std::endl;
 
   	}
 
@@ -114,8 +116,8 @@ TEfficiency * calcChargeMisID(TH2F * histo){
 
 TH1F * convertTEff(TEfficiency * histo){
 
-	//FIX
-  	TH1F * tmp = new TH1F("tmp","tmp",261,-2.5,1302.5);
+  	TH1F * tmp = (TH1F*)histo->GetTotalHistogram();
+	tmp->Reset();
 
 	for(int i=1; i<tmp->GetSize(); i++){
 
@@ -139,15 +141,13 @@ std::vector<TH1D*> produceQoPPlots(TH2F * histo){
      	//std::cout<<histo->GetEntries()<<std::endl;
 
 	TH2F * histoClone = (TH2F*)histo->Clone();
-	TH1D * projX = histoClone->ProjectionX("proj",1,1);
+	TH1D * projX = histoClone->ProjectionX("projX",1,1);
 	TH1D * plotRms = (TH1D*)projX->Clone();
-	std::cout<<projX->GetSize()<<" "<<plotRms->GetSize()<<std::endl;
-	projX->Reset();
-	plotRms->Reset();
+	//std::cout<<projX->GetSize()<<" "<<plotRms->GetSize()<<std::endl;
 
 	for(int i=1; i<histo->GetNbinsX(); i++){
 
-  		TH1D * projY = histoClone->ProjectionY("proj",i,i);
+  		TH1D * projY = histoClone->ProjectionY("projY",i,i);
 		if((projY->GetEntries()) == 0) continue;
 
 		double mean = projY->GetMean();
@@ -170,17 +170,15 @@ std::vector<TH1D*> produceQoPPlots(TH2F * histo){
 
 		plotRms->SetBinContent(i,rms);
 
-		std::cout<<i<<" "<<projX->GetBinContent(i)<<" "<<projX->GetBinError(i)<<" "<<plotRms->GetBinContent(i)<<std::endl;
-		std::cout<<i<<" "<<sigma<<" "<<DeltaSigma<<" "<<rms<<std::endl;
+		//std::cout<<i<<" "<<projX->GetBinContent(i)<<" "<<projX->GetBinError(i)<<" "<<plotRms->GetBinContent(i)<<std::endl;
+		//std::cout<<i<<" "<<sigma<<" "<<DeltaSigma<<" "<<rms<<std::endl;
 
 	}
 
-	std::cout<<projX->GetEntries()<<std::endl;
-	std::cout<<plotRms->GetEntries()<<std::endl;
+	//std::cout<<projX->GetEntries()<<std::endl;
+	//std::cout<<plotRms->GetEntries()<<std::endl;
 	tmp.push_back(projX);
 	tmp.push_back(plotRms);
-	projX->Delete();
-	plotRms->Delete();
 	return tmp;
 
 }
@@ -258,9 +256,22 @@ DQMAnalyzerSTEP2::beginRun(edm::Run const&, edm::EventSetup const&)
   InvPtResVsPt = dbe_->book1D("InvPtResVsPt","InvPtResVsPt",261,-2.5,1302.5);
   RmsVsPt = dbe_->book1D("RmsVsPt","RmsVsPt",261,-2.5,1302.5);
 
-  EfficiencyVsEta = dbe_->book1D("EfficiencyVsEta","EfficiencyVsEta",100,-2.5,+2.5);
-  InvPtResVsEta = dbe_->book1D("InvPtResVsEta","InvPtResVsEta",100,-2.5,+2.5);
-  RmsVsEta = dbe_->book1D("RmsVsEta","RmsVsEta",100,-2.5,+2.5);
+  for(int i = 0; i < (int)localFolder_.size(); i++){
+
+    	std::stringstream meName;
+    	meName.str("");
+    	meName<<"EfficiencyVsEta_"<<localFolder_[i];
+  	EfficiencyVsEta[i] = dbe_->book1D(meName.str(),meName.str(),100,-2.5,+2.5);
+
+    	meName.str("");
+    	meName<<"InvPtResVsEta_"<<localFolder_[i];
+  	InvPtResVsEta[i] = dbe_->book1D(meName.str(),meName.str(),100,-2.5,+2.5);
+
+    	meName.str("");
+    	meName<<"RmsVsEta_"<<localFolder_[i];
+  	RmsVsEta[i] = dbe_->book1D(meName.str(),meName.str(),100,-2.5,+2.5);
+
+  }
 
 }
 
@@ -271,8 +282,7 @@ void
 DQMAnalyzerSTEP2::endRun(edm::Run const&, edm::EventSetup const&)
 {
 
-
-   for(int i=0; i<(int)localFolder_.size(); i++){
+   for(int i = 0; i < (int)localFolder_.size(); i++){
 
 	   //Efficiency vs. SimPt
 
@@ -298,6 +308,7 @@ DQMAnalyzerSTEP2::endRun(edm::Run const&, edm::EventSetup const&)
 		TH1F * histo1 = myMe1->getTH1F();
 		TH1F * histo2 = myMe2->getTH1F();
 
+		//std::cout<<"eff vs pt"<<std::endl;
 		TEfficiency * effVsPt = calcEff(histo1, histo2);
 		TH1F * effVsPt2 = convertTEff(effVsPt);
 
@@ -329,7 +340,7 @@ DQMAnalyzerSTEP2::endRun(edm::Run const&, edm::EventSetup const&)
 
 		TEfficiency * chargeMisID = calcChargeMisID(histo3);
 		TH1F * chargeMisID2 = convertTEff(chargeMisID);
-
+		//std::cout<<"charge vs pt"<<std::endl;
 		for(int j=1; j<chargeMisID2->GetSize(); j++){
 
 			double eff = chargeMisID2->GetBinContent(j);
@@ -377,7 +388,7 @@ DQMAnalyzerSTEP2::endRun(edm::Run const&, edm::EventSetup const&)
 
 	   //Efficiency vs. SimEta
 
-	   /*std::stringstream meName5;
+	   std::stringstream meName5;
 	   MonitorElement * myMe5;
 
 	   std::stringstream meName6;
@@ -405,8 +416,8 @@ DQMAnalyzerSTEP2::endRun(edm::Run const&, edm::EventSetup const&)
 			double eff = effVsPt2->GetBinContent(j);
 			double err = effVsPt2->GetBinError(j);
 			if(eff == 0) continue;
-			EfficiencyVsEta->setBinContent(j,eff);
-			EfficiencyVsEta->setBinError(j,err);
+			EfficiencyVsEta[i]->setBinContent(j,eff);
+			EfficiencyVsEta[i]->setBinError(j,err);
 
 		}
 
@@ -426,11 +437,11 @@ DQMAnalyzerSTEP2::endRun(edm::Run const&, edm::EventSetup const&)
 
 	   	std::vector<TH1D*> result;
 		TH2F * histo7 = myMe7->getTH2F();
-		std::cout<<histo7->GetEntries()<<std::endl;
+		//std::cout<<histo7->GetEntries()<<std::endl;
 
 		result = produceQoPPlots(histo7);
 
-		std::cout<<result[0]->GetEntries()<<" "<<result[1]->GetEntries()<<" "<<result.size()<<std::endl;
+		//std::cout<<result[0]->GetEntries()<<" "<<result[1]->GetEntries()<<" "<<result.size()<<std::endl;
 
 		for(int j=1; j<result[0]->GetSize(); j++){
 
@@ -438,13 +449,13 @@ DQMAnalyzerSTEP2::endRun(edm::Run const&, edm::EventSetup const&)
 			double sigmaErrVal = result[0]->GetBinError(j);
 			double rmsVal = result[1]->GetBinContent(j);
 			if(sigmaVal == 0) continue;
-			InvPtResVsEta->setBinContent(j,sigmaVal);
-			InvPtResVsEta->setBinError(j,sigmaErrVal);
-			RmsVsEta->setBinContent(j,rmsVal);
+			InvPtResVsEta[i]->setBinContent(j,sigmaVal);
+			InvPtResVsEta[i]->setBinError(j,sigmaErrVal);
+			RmsVsEta[i]->setBinContent(j,rmsVal);
 
 		}
 
-	   }*/
+	   }
 
    }
 
