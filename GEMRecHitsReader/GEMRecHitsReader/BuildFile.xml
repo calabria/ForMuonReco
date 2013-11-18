@@ -1,11 +1,11 @@
-<use name="FWCore/Framework"/>
-<use name="FWCore/PluginManager"/>
-<use name="FWCore/ParameterSet"/>
+<use   name="FWCore/Framework"/>
+<use   name="FWCore/PluginManager"/>
+<use   name="FWCore/ParameterSet"/>
 <use   name="FWCore/ServiceRegistry"/>
 <use   name="FWCore/MessageLogger"/>
 
 <use   name="DataFormats/GEMRecHit"/>
-
+<use   name="DataFormats/GEMDigi"/>
 <use   name="DataFormats/DetId"/>
 <use   name="DataFormats/GeometrySurface"/>
 <use   name="DataFormats/GeometryVector"/>
