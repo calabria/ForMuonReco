@@ -117,7 +117,6 @@ TEfficiency * calcChargeMisID(TH2F * histo){
 TH1F * convertTEff(TEfficiency * histo){
 
   	TH1F * tmp = (TH1F*)histo->GetTotalHistogram();
-	tmp->Reset();
 
 	for(int i=1; i<tmp->GetSize(); i++){
 
