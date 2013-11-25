@@ -117,7 +117,6 @@ TEfficiency * calcChargeMisID(TH2F * histo){
 TH1F * convertTEff(TEfficiency * histo){
 
   	TH1F * tmp = (TH1F*)histo->GetTotalHistogram();
-	tmp->Reset();
 
 	for(int i=1; i<tmp->GetSize(); i++){
 
@@ -251,25 +250,40 @@ DQMAnalyzerSTEP2::beginRun(edm::Run const&, edm::EventSetup const&)
   if(dbe_ == 0) return;
 
   dbe_->setCurrentFolder(globalFolder_);
-  ChargeMisIDVsPt = dbe_->book1D("ChargeMisIDVsPt","ChargeMisIDVsPt",261,-2.5,1302.5);
-  EfficiencyVsPt = dbe_->book1D("EfficiencyVsPt","EfficiencyVsPt",261,-2.5,1302.5);
-  InvPtResVsPt = dbe_->book1D("InvPtResVsPt","InvPtResVsPt",261,-2.5,1302.5);
-  RmsVsPt = dbe_->book1D("RmsVsPt","RmsVsPt",261,-2.5,1302.5);
+  ChargeMisIDVsPt = dbe_->book1D("ChargeMisIDVsPt","Charge Mis-ID Prob. vs p_{T}",261,-2.5,1302.5);
+  EfficiencyVsPt = dbe_->book1D("EfficiencyVsPt","Efficiency vs. p_{T}",261,-2.5,1302.5);
+  InvPtResVsPt = dbe_->book1D("InvPtResVsPt","q/p core width vs. p_{T}",261,-2.5,1302.5);
+  RmsVsPt = dbe_->book1D("RmsVsPt","q/p RMS vs. p_{T}",261,-2.5,1302.5);
+
+  ChargeMisIDVsPt->setAxisTitle("p_{T}^{Sim} [GeV/c]");
+  EfficiencyVsPt->setAxisTitle("p_{T}^{Sim} [GeV/c]");
+  InvPtResVsPt->setAxisTitle("p_{T}^{Sim} [GeV/c]");
+  RmsVsPt->setAxisTitle("p_{T}^{Sim} [GeV/c]");
 
   for(int i = 0; i < (int)localFolder_.size(); i++){
 
     	std::stringstream meName;
+    	std::stringstream meTitle;
     	meName.str("");
+    	meTitle.str("");
     	meName<<"EfficiencyVsEta_"<<localFolder_[i];
-  	EfficiencyVsEta[i] = dbe_->book1D(meName.str(),meName.str(),100,-2.5,+2.5);
+    	meTitle<<"Efficiency vs. #eta ("<<localFolder_[i]<<")";
+  	EfficiencyVsEta[i] = dbe_->book1D(meName.str(),meTitle.str(),100,-2.5,+2.5);
+	EfficiencyVsEta[i]->setAxisTitle("#eta^{Sim}");
 
     	meName.str("");
+    	meTitle.str("");
     	meName<<"InvPtResVsEta_"<<localFolder_[i];
-  	InvPtResVsEta[i] = dbe_->book1D(meName.str(),meName.str(),100,-2.5,+2.5);
+    	meTitle<<"q/p core width vs. #eta ("<<localFolder_[i]<<")";
+  	InvPtResVsEta[i] = dbe_->book1D(meName.str(),meTitle.str(),100,-2.5,+2.5);
+	InvPtResVsEta[i]->setAxisTitle("#eta^{Sim}");
 
     	meName.str("");
+    	meTitle.str("");
     	meName<<"RmsVsEta_"<<localFolder_[i];
-  	RmsVsEta[i] = dbe_->book1D(meName.str(),meName.str(),100,-2.5,+2.5);
+    	meTitle<<"q/p RMS vs. #eta ("<<localFolder_[i]<<")";
+  	RmsVsEta[i] = dbe_->book1D(meName.str(),meTitle.str(),100,-2.5,+2.5);
+	RmsVsEta[i]->setAxisTitle("#eta^{Sim}");
 
   }
 
@@ -298,7 +312,7 @@ DQMAnalyzerSTEP2::endRun(edm::Run const&, edm::EventSetup const&)
 	   meName2.str("");
 	   meName2<<globalFolder_<<"SingleMu"<<localFolder_[i]<<"/DenSimPt";
 
-	   //std::cout<<meName1.str()<<" "<<meName2.str()<<std::endl;
+	   std::cout<<meName1.str()<<" "<<meName2.str()<<std::endl;
 
 	   myMe1 = dbe_->get(meName1.str());
 	   myMe2 = dbe_->get(meName2.str());
@@ -308,7 +322,6 @@ DQMAnalyzerSTEP2::endRun(edm::Run const&, edm::EventSetup const&)
 		TH1F * histo1 = myMe1->getTH1F();
 		TH1F * histo2 = myMe2->getTH1F();
 
-		//std::cout<<"eff vs pt"<<std::endl;
 		TEfficiency * effVsPt = calcEff(histo1, histo2);
 		TH1F * effVsPt2 = convertTEff(effVsPt);
 

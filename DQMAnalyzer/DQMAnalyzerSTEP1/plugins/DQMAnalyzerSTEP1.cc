@@ -222,10 +222,10 @@ DQMAnalyzerSTEP1::DQMAnalyzerSTEP1(const edm::ParameterSet& iConfig)
    hNumRecTracks = dbe->book1D("NumRecTracks","NumRecTracks",11,-0.5,10.5);
    hNumGEMSimHits = dbe->book1D("NumGEMSimHits","NumGEMSimHits",11,-0.5,10.5);
    hNumGEMRecHits = dbe->book1D("NumGEMRecHits","NumGEMRecHits",11,-0.5,10.5);
-   hPtResVsPt = dbe->book2D("PtResVsPt","p_{T} Resolution vs. Sim p_{T}",261,-2.5,1302.5,400,-10,10);
-   hInvPtResVsPt = dbe->book2D("InvPtResVsPt","1/p_{T} Resolution vs. Sim p_{T}",261,-2.5,1302.5,400,-10,10);
-   hPtResVsEta = dbe->book2D("PtResVsEta","p_{T} Resolution vs. Sim #eta",100,-2.5,2.5,400,-10,10);
-   hInvPtResVsEta = dbe->book2D("InvPtResVsEta","1/p_{T} Resolution vs. Sim #eta",100,-2.5,2.5,400,-10,10);
+   hPtResVsPt = dbe->book2D("PtResVsPt","p_{T} Resolution vs. Sim p_{T}",261,-2.5,1302.5,1000,-5,5);
+   hInvPtResVsPt = dbe->book2D("InvPtResVsPt","1/p_{T} Resolution vs. Sim p_{T}",261,-2.5,1302.5,1000,-5,5);
+   hPtResVsEta = dbe->book2D("PtResVsEta","p_{T} Resolution vs. Sim #eta",100,-2.5,2.5,1000,-5,5);
+   hInvPtResVsEta = dbe->book2D("InvPtResVsEta","1/p_{T} Resolution vs. Sim #eta",100,-2.5,2.5,1000,-5,5);
    hDenSimPt = dbe->book1D("DenSimPt","DenSimPt",261,-2.5,1302.5);
    hDenSimEta = dbe->book1D("DenSimEta","DenSimEta",100,-2.5,2.5);
    hDenSimPhiPlus = dbe->book1D("DenSimPhiPlus","DenSimPhiMinus",360,0,180);
